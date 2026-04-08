@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HOMECARE — Wochenassistent</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+:root{
+  --bg:#f4f1eb;--surface:#fff;--s2:#f9f7f3;
+  --border:#e2ddd4;--border2:#ccc8be;
+  --text:#1a1916;--t2:#6b6860;--t3:#9e9b93;
+  --gold:#7a5c18;--gold-bg:#f5edd8;--gold-bd:#d4a843;
+  --teal:#0f6e56;--teal-bg:#e1f5ee;--teal-bd:#5dcaa5;
+  --red:#a32d2d;--red-bg:#fcebeb;--red-bd:#f09595;
+  --amber:#854f0b;--amber-bg:#faeeda;--amber-bd:#ef9f27;
+  --r:10px;--rs:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5}
+
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center}
+.lbox{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:44px 52px;width:340px;text-align:center}
+.leyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--t3);margin-bottom:6px}
+.ltitle{font-size:20px;color:var(--text);margin-bottom:28px;font-family:Georgia,serif;font-weight:normal}
+.pin{width:100%;padding:12px;border:1px solid var(--border);border-radius:var(--rs);font-size:22px;letter-spacing:.3em;text-align:center;background:var(--surface);color:var(--text);outline:none;margin-bottom:12px;transition:border-color .15s}
+.pin:focus{border-color:var(--gold-bd)}
+.lbtn{width:100%;padding:11px;background:var(--text);color:#fff;border:none;border-radius:var(--rs);font-size:14px;cursor:pointer;letter-spacing:.04em;transition:opacity .15s}
+.lbtn:hover{opacity:.85}
+.lerr{font-size:12px;color:var(--red);margin-top:10px;min-height:18px}
+
+#app{display:none}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;display:flex;align-items:center;gap:16px;height:50px}
+.tlogo{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--t3)}
+.tsep{width:1px;height:18px;background:var(--border)}
+.ttitle{font-size:13px;color:var(--t2);flex:1}
+.tweek{font-size:12px;color:var(--t3)}
+.tlogout{font-size:12px;color:var(--t3);border:none;background:none;cursor:pointer;padding:4px 8px}
+.tlogout:hover{color:var(--text)}
+
+.stepper-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;display:flex;align-items:stretch;gap:0;overflow-x:auto}
+.step-tab{display:flex;align-items:center;gap:8px;padding:12px 18px;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;color:var(--t2);transition:all .15s;font-size:13px}
+.step-tab:hover{color:var(--text)}
+.step-tab.active{color:var(--gold);border-bottom-color:var(--gold-bd)}
+.step-tab.done{color:var(--teal)}
+.step-tab.done .snum{background:var(--teal-bg);color:var(--teal)}
+.step-tab.locked{color:var(--t3);cursor:not-allowed}
+.snum{width:20px;height:20px;border-radius:50%;background:var(--bg);color:var(--t3);font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:500;transition:all .15s}
+.step-tab.active .snum{background:var(--gold-bg);color:var(--gold)}
+.scheck{width:20px;height:20px;border-radius:50%;background:var(--teal-bg);color:var(--teal);font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+.content{padding:28px;max-width:1040px;margin:0 auto}
+.page{display:none}.page.active{display:block}
+
+/* STEP HEADER */
+.step-header{margin-bottom:24px}
+.step-eyebrow{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--t3);margin-bottom:6px}
+.step-title{font-size:20px;color:var(--text);font-family:Georgia,serif;font-weight:normal;margin-bottom:8px}
+.step-desc{font-size:13px;color:var(--t2);line-height:1.6;max-width:620px}
+
+/* UPLOAD */
+.upload-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+.ucard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px}
+.ucard-title{font-size:13px;font-weight:500;margin-bottom:3px;color:var(--text)}
+.ucard-sub{font-size:12px;color:var(--t2);margin-bottom:12px}
+.dropzone{border:1.5px dashed var(--border2);border-radius:var(--rs);padding:20px 12px;text-align:center;cursor:pointer;background:var(--s2);transition:all .15s}
+.dropzone:hover,.dropzone.drag{border-color:var(--gold-bd);background:var(--gold-bg)}
+.dropzone.ok{border-color:var(--teal-bd);background:var(--teal-bg)}
+.dz-lbl{font-size:12px;color:var(--t2)}.dz-lbl strong{color:var(--text)}
+.ustat{margin-top:8px;font-size:12px;color:var(--t2);min-height:16px}
+.ustat.ok{color:var(--teal)}.ustat.err{color:var(--red)}
+input[type=file]{display:none}
+
+/* BUTTONS */
+.btn-primary{padding:10px 22px;background:var(--text);color:#fff;border:none;border-radius:var(--rs);font-size:13px;cursor:pointer;letter-spacing:.03em;transition:opacity .15s}
+.btn-primary:hover{opacity:.85}
+.btn-primary:disabled{opacity:.35;cursor:not-allowed}
+.btn-sec{padding:9px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);font-size:13px;cursor:pointer;color:var(--t2);transition:all .15s}
+.btn-sec:hover{background:var(--bg);color:var(--text)}
+.btn-next{padding:10px 24px;background:var(--gold-bg);border:1px solid var(--gold-bd);border-radius:var(--rs);font-size:13px;cursor:pointer;color:var(--gold);letter-spacing:.03em;transition:all .15s}
+.btn-next:hover{background:var(--gold-bd);color:#fff}
+
+/* METRICS */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px}
+.metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px}
+.metric.alert{border-color:var(--red-bd);background:var(--red-bg)}
+.metric.alert .mlabel{color:var(--red)}
+.metric.alert .mval{color:var(--red)}
+.mlabel{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--t3);margin-bottom:4px}
+.mval{font-size:20px;font-weight:400;color:var(--text)}
+
+/* CHECKLIST */
+.checklist{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.check-item{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);cursor:pointer;transition:all .15s}
+.check-item:hover{border-color:var(--border2)}
+.check-item.checked{opacity:.6}
+.check-item.checked .ci-title{text-decoration:line-through;color:var(--t3)}
+.check-box{width:18px;height:18px;border:1.5px solid var(--border2);border-radius:4px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.check-item.checked .check-box{background:var(--teal);border-color:var(--teal)}
+.check-mark{color:#fff;font-size:11px;display:none}
+.check-item.checked .check-mark{display:block}
+.ci-body{flex:1}
+.ci-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:2px}
+.ci-hint{font-size:12px;color:var(--t2);line-height:1.5}
+.ci-badge{display:inline-block;font-size:10px;padding:1px 7px;border-radius:999px;margin-left:6px;vertical-align:middle}
+.ci-pflicht{background:var(--red-bg);color:var(--red)}
+.ci-opt{background:var(--s2);color:var(--t2)}
+
+/* SECTION DIVIDER */
+.sdiv{display:flex;align-items:center;gap:10px;margin:20px 0 12px}
+.sdiv-label{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);white-space:nowrap}
+.sdiv-line{flex:1;height:1px;background:var(--border)}
+
+/* FILTER BAR */
+.fbar{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.fpill{padding:4px 12px;font-size:12px;border:1px solid var(--border);border-radius:999px;cursor:pointer;background:var(--surface);color:var(--t2);transition:all .15s}
+.fpill:hover{background:var(--bg)}
+.fpill.active{background:var(--gold-bg);border-color:var(--gold-bd);color:var(--gold)}
+.fsearch{margin-left:auto;padding:5px 11px;border:1px solid var(--border);border-radius:var(--rs);font-size:12px;background:var(--surface);color:var(--text);outline:none;width:200px}
+.fsearch:focus{border-color:var(--gold-bd)}
+
+/* KASSEN CARDS */
+.kasse-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;overflow:hidden}
+.kasse-card.is-done{opacity:.55}
+.khead{display:flex;align-items:center;gap:10px;padding:11px 16px;cursor:pointer;user-select:none;transition:background .1s}
+.khead:hover{background:var(--s2)}
+.kname{font-size:13px;flex:1;font-weight:500}
+.kkto{font-size:11px;color:var(--t3);font-weight:400;margin-left:5px}
+.badges{display:flex;gap:5px;align-items:center}
+.badge{font-size:11px;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.b-n{background:#e6f1fb;color:#0c447c}
+.b-sum{background:var(--teal-bg);color:var(--teal)}
+.b-m2{background:var(--red-bg);color:var(--red)}
+.b-m1{background:var(--amber-bg);color:var(--amber)}
+.b-priv{background:#faeeda;color:#412402}
+.b-done{background:var(--teal-bg);color:var(--teal)}
+.chev{font-size:11px;color:var(--t3);transition:transform .15s}
+.chev.open{transform:rotate(180deg)}
+.kbody{display:none;border-top:1px solid var(--border)}
+.kbody.open{display:block}
+.anruf-banner{padding:10px 16px;font-size:12px;line-height:1.6;border-bottom:1px solid var(--border)}
+.ab-kasse{background:var(--teal-bg);color:#085041}
+.ab-priv{background:var(--amber-bg);color:#412402}
+.ptbl{width:100%;border-collapse:collapse;font-size:12px}
+.ptbl th{padding:6px 10px;text-align:left;font-size:11px;font-weight:500;color:var(--t2);background:var(--s2);border-bottom:1px solid var(--border);letter-spacing:.03em}
+.ptbl td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.ptbl tr:last-child td{border-bottom:none}
+.ptbl tr:hover td{background:var(--s2)}
+.tr{text-align:right;font-variant-numeric:tabular-nums}
+.th-red{color:var(--red)}.th-teal{color:var(--teal)}
+.mbadge{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font-size:10px}
+.m0{background:#f1efe8;color:#444}.m1{background:var(--amber-bg);color:var(--amber)}.m2{background:var(--red-bg);color:var(--red)}.m2i{background:#e6f1fb;color:#0c447c}
+.tfoot-row td{background:var(--s2);font-size:12px;color:var(--t2);border-top:1px solid var(--border)!important;border-bottom:none!important}
+.notiz-row{padding:10px 16px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:flex-start}
+.notiz-lbl{font-size:11px;color:var(--t3);padding-top:7px;min-width:80px}
+.notiz-ta{flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:var(--rs);font-size:12px;background:var(--surface);color:var(--text);resize:vertical;min-height:44px;outline:none;font-family:inherit;line-height:1.5}
+.notiz-ta:focus{border-color:var(--gold-bd)}
+.kfooter{padding:9px 16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.done-btn{padding:5px 14px;font-size:12px;border:1px solid var(--border);border-radius:var(--rs);cursor:pointer;background:var(--surface);color:var(--t2);transition:all .15s}
+.done-btn:hover{background:var(--bg)}
+.done-btn.done{background:var(--teal-bg);color:var(--teal);border-color:var(--teal-bd)}
+
+/* STORNO TABLE */
+.stbl{width:100%;border-collapse:collapse;font-size:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.stbl th{padding:8px 12px;text-align:left;font-size:11px;font-weight:500;color:var(--t2);background:var(--s2);border-bottom:1px solid var(--border);letter-spacing:.03em}
+.stbl td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.stbl tr:last-child td{border-bottom:none}
+.stbl tr:hover td{background:var(--s2)}
+.status-sel{padding:3px 7px;border:1px solid var(--border);border-radius:4px;font-size:11px;background:var(--surface);color:var(--text);outline:none;cursor:pointer}
+
+/* AUSZAHLUNG */
+.azcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;margin-bottom:10px}
+.azcard-title{font-size:13px;font-weight:500;margin-bottom:10px;color:var(--text)}
+.azcheck{display:flex;flex-direction:column;gap:6px}
+.azitem{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);cursor:pointer;transition:all .15s}
+.azitem:hover{border-color:var(--border2)}
+.azitem.checked{background:var(--teal-bg);border-color:var(--teal-bd)}
+.azitem.checked .azlabel{color:var(--teal)}
+.azchk{width:16px;height:16px;border:1.5px solid var(--border2);border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff}
+.azitem.checked .azchk{background:var(--teal);border-color:var(--teal)}
+.azlabel{font-size:12px;color:var(--t2);flex:1}
+.azitem.checked .azlabel{color:var(--teal)}
+.azwarn{font-size:12px;color:var(--red);font-weight:500}
+.azwarn-item{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--red-bg);border:1px solid var(--red-bd);border-radius:var(--rs);font-size:12px;color:var(--red);margin-bottom:6px}
+
+/* ABSCHLUSS */
+.summary-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;margin-bottom:12px}
+.summary-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.summary-row:last-child{border-bottom:none}
+.summary-label{color:var(--t2)}
+.summary-val{font-weight:500}
+.summary-val.ok{color:var(--teal)}
+.summary-val.warn{color:var(--amber)}
+.summary-val.red{color:var(--red)}
+
+/* PROGRESS */
+.progress-bar{height:3px;background:var(--border);border-radius:2px;margin-bottom:20px;overflow:hidden}
+.progress-fill{height:100%;background:var(--gold-bd);border-radius:2px;transition:width .4s ease}
+
+/* INFO BOX */
+.infobox{padding:11px 14px;border-radius:var(--rs);font-size:12px;line-height:1.6;margin-bottom:16px}
+.infobox.gold{background:var(--gold-bg);border:1px solid var(--gold-bd);color:var(--gold)}
+.infobox.teal{background:var(--teal-bg);border:1px solid var(--teal-bd);color:var(--teal)}
+.infobox.red{background:var(--red-bg);border:1px solid var(--red-bd);color:var(--red)}
+
+.step-nav{display:flex;align-items:center;gap:10px;margin-top:28px;padding-top:20px;border-top:1px solid var(--border)}
+.spacer{flex:1}
+
+.empty{text-align:center;padding:48px 20px;color:var(--t3);font-size:13px}
+.empty strong{display:block;color:var(--t2);margin-bottom:6px;font-size:14px}
+
+@media(max-width:700px){
+  .upload-grid{grid-template-columns:1fr}
+  .metrics{grid-template-columns:1fr 1fr}
+  .content{padding:16px}
+}
+</style>
+</head>
+<body>
+
+<div id="login">
+  <div class="lbox">
+    <div class="leyebrow">HOMECARE</div>
+    <div class="ltitle">Wochenassistent</div>
+    <input class="pin" type="password" id="pin" placeholder="· · · ·" maxlength="6"
+      onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="lbtn" onclick="doLogin()">Anmelden</button>
+    <div class="lerr" id="lerr"></div>
+  </div>
+</div>
+
+<div id="app">
+  <div class="topbar">
+    <span class="tlogo">HOMECARE</span>
+    <div class="tsep"></div>
+    <span class="ttitle">Wochenassistent — Verwaltung</span>
+    <span class="tweek" id="tweek"></span>
+    <button class="tlogout" onclick="doLogout()">Abmelden</button>
+  </div>
+
+  <div class="stepper-bar" id="stepper"></div>
+
+  <div class="content">
+    <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+
+    <!-- SCHRITT 1: Upload -->
+    <div class="page" id="page-1">
+      <div class="step-header">
+        <div class="step-eyebrow">Schritt 1 von 5</div>
+        <div class="step-title">Dokumente hochladen</div>
+        <div class="step-desc">Lade die drei wöchentlichen Dokumente aus AS Bremen hoch. Die Daten werden nur lokal im Browser verarbeitet — nichts wird übertragen oder gespeichert.</div>
+      </div>
+      <div class="upload-grid">
+        <div class="ucard">
+          <div class="ucard-title">OPOS-Liste</div>
+          <div class="ucard-sub">Offene Postenliste aus AS Bremen</div>
+          <div class="dropzone" id="dz-opos"
+            onclick="document.getElementById('fi-opos').click()"
+            ondragover="dzOver(event,'dz-opos')" ondragleave="dzLeave('dz-opos')" ondrop="dzDrop(event,'opos')">
+            <div class="dz-lbl" id="dl-opos"><strong>PDF auswählen</strong><br>oder hierher ziehen</div>
+          </div>
+          <input type="file" id="fi-opos" accept=".pdf" onchange="loadPDF(this,'opos')">
+          <div class="ustat" id="us-opos"></div>
+        </div>
+        <div class="ucard">
+          <div class="ucard-title">Storno-Liste</div>
+          <div class="ucard-sub">Stornierungen aus heimbas / AS Bremen</div>
+          <div class="dropzone" id="dz-storno"
+            onclick="document.getElementById('fi-storno').click()"
+            ondragover="dzOver(event,'dz-storno')" ondragleave="dzLeave('dz-storno')" ondrop="dzDrop(event,'storno')">
+            <div class="dz-lbl" id="dl-storno"><strong>PDF auswählen</strong><br>oder hierher ziehen</div>
+          </div>
+          <input type="file" id="fi-storno" accept=".pdf" onchange="loadPDF(this,'storno')">
+          <div class="ustat" id="us-storno"></div>
+        </div>
+        <div class="ucard">
+          <div class="ucard-title">Auszahlungsbelege</div>
+          <div class="ucard-sub">Auszahlungsprotokoll AS Bremen</div>
+          <div class="dropzone" id="dz-az"
+            onclick="document.getElementById('fi-az').click()"
+            ondragover="dzOver(event,'dz-az')" ondragleave="dzLeave('dz-az')" ondrop="dzDrop(event,'az')">
+            <div class="dz-lbl" id="dl-az"><strong>PDF auswählen</strong><br>oder hierher ziehen</div>
+          </div>
+          <input type="file" id="fi-az" accept=".pdf" onchange="loadPDF(this,'az')">
+          <div class="ustat" id="us-az"></div>
+        </div>
+      </div>
+      <div class="infobox gold">
+        Mindestens die OPOS-Liste wird benötigt. Storno und Auszahlung können auch später hinzugefügt werden.
+      </div>
+      <div class="step-nav">
+        <div class="spacer"></div>
+        <button class="btn-next" id="btn-weiter-1" onclick="goStep(2)" disabled>
+          Weiter zur Übersicht →
+        </button>
+      </div>
+    </div>
+
+    <!-- SCHRITT 2: Prioritäten-Übersicht -->
+    <div class="page" id="page-2">
+      <div class="step-header">
+        <div class="step-eyebrow">Schritt 2 von 5</div>
+        <div class="step-title">Prioritäten-Übersicht</div>
+        <div class="step-desc">Automatische Auswertung der hochgeladenen Dokumente. Rot markierte Bereiche erfordern sofortiges Handeln.</div>
+      </div>
+      <div class="metrics" id="metrics2"></div>
+
+      <div class="sdiv"><div class="sdiv-line"></div><div class="sdiv-label">Handlungsbedarf diese Woche</div><div class="sdiv-line"></div></div>
+      <div id="prio-liste"></div>
+
+      <div class="step-nav">
+        <button class="btn-sec" onclick="goStep(1)">← Zurück</button>
+        <div class="spacer"></div>
+        <button class="btn-next" onclick="goStep(3)">Weiter: Kassengespräche →</button>
+      </div>
+    </div>
+
+    <!-- SCHRITT 3: OPOS Kassengespräche -->
+    <div class="page" id="page-3">
+      <div class="step-header">
+        <div class="step-eyebrow">Schritt 3 von 5</div>
+        <div class="step-title">Kassengespräche vorbereiten</div>
+        <div class="step-desc">Pro Kasse eine Anrufmappe — sortiert nach Gesamtrestbetrag. Innerhalb eines Anrufs alle Versicherten dieser Kasse besprechen. Notizen direkt eintragen.</div>
+      </div>
+      <div class="infobox teal" id="opos-hint"></div>
+      <div class="fbar">
+        <button class="fpill active" onclick="setF('alle',this)">Alle</button>
+        <button class="fpill" onclick="setF('m2',this)">Mahnstufe 2</button>
+        <button class="fpill" onclick="setF('m1',this)">Mahnstufe 1</button>
+        <button class="fpill" onclick="setF('privat',this)">Privat</button>
+        <button class="fpill" onclick="setF('offen',this)">Nicht erledigt</button>
+        <input class="fsearch" type="text" placeholder="Suchen …" id="opos-search" oninput="renderOpos()">
+      </div>
+      <div id="opos-list"></div>
+      <div class="step-nav">
+        <button class="btn-sec" onclick="goStep(2)">← Zurück</button>
+        <div class="spacer"></div>
+        <button class="btn-next" onclick="goStep(4)">Weiter: Stornos →</button>
+      </div>
+    </div>
+
+    <!-- SCHRITT 4: Stornos & Auszahlung -->
+    <div class="page" id="page-4">
+      <div class="step-header">
+        <div class="step-eyebrow">Schritt 4 von 5</div>
+        <div class="step-title">Stornos & Auszahlungsbelege</div>
+        <div class="step-desc">Stornierungen nach Farbschema kategorisieren. Anschließend Auszahlungsbelege kontrollieren — Stornos gutgeschrieben? Rückbelastungen? Lastschriften?</div>
+      </div>
+
+      <div class="sdiv"><div class="sdiv-line"></div><div class="sdiv-label">Stornierungen</div><div class="sdiv-line"></div></div>
+      <div id="storno-table-wrap"></div>
+
+      <div class="sdiv" style="margin-top:24px"><div class="sdiv-line"></div><div class="sdiv-label">Auszahlungsbelege kontrollieren</div><div class="sdiv-line"></div></div>
+      <div id="az-checks"></div>
+
+      <div class="step-nav">
+        <button class="btn-sec" onclick="goStep(3)">← Zurück</button>
+        <div class="spacer"></div>
+        <button class="btn-next" onclick="goStep(5)">Weiter: Abschluss →</button>
+      </div>
+    </div>
+
+    <!-- SCHRITT 5: Abschluss & Vorbereitung -->
+    <div class="page" id="page-5">
+      <div class="step-header">
+        <div class="step-eyebrow">Schritt 5 von 5</div>
+        <div class="step-title">Abschluss & nächste Woche</div>
+        <div class="step-desc">Zusammenfassung der Wochenarbeit und Checkliste zur Vorbereitung der nächsten Abrechnung.</div>
+      </div>
+
+      <div class="sdiv"><div class="sdiv-line"></div><div class="sdiv-label">Wochenzusammenfassung</div><div class="sdiv-line"></div></div>
+      <div id="woche-summary"></div>
+
+      <div class="sdiv" style="margin-top:22px"><div class="sdiv-line"></div><div class="sdiv-label">Vorbereitung nächste Abrechnung</div><div class="sdiv-line"></div></div>
+      <div class="checklist" id="vorb-checklist"></div>
+
+      <div class="step-nav">
+        <button class="btn-sec" onclick="goStep(4)">← Zurück</button>
+        <div class="spacer"></div>
+        <button class="btn-primary" onclick="resetWoche()">Neue Woche starten</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+const PIN='1996';
+let currentStep=1;
+let oposData=[], stornoData=[], azText='';
+const oposNotes={}, oposDone={}, stornoStatus={}, azChecked={};
+let oposFilter='alle';
+
+const KONTO_KASSE={
+  '1700':'Techniker Krankenkasse','1706':'Pflegekasse der AOK Bayern',
+  '1711':'Privat','1721':'Privat','1724':'Landwirtschaftliche Pflegekasse',
+  '1725':'HEK – Hanseatische','1730':'Sozialversicherung',
+  '1740':'Pflegekasse / SVA','1792':'Privat'
+};
+const PRIVAT_KONTEN=['1711','1721','1792'];
+
+function fmt(n){return n.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' €'}
+function mBadge(m){const c=m==='2i'?'m2i':m==='2'?'m2':m==='1'?'m1':'m0';return`<span class="mbadge ${c}">${m==='0'?'—':m}</span>`}
+
+function doLogin(){
+  const v=document.getElementById('pin').value.trim();
+  if(v===PIN){
+    document.getElementById('login').style.display='none';
+    document.getElementById('app').style.display='block';
+    const now=new Date();
+    const kw=getKW(now);
+    document.getElementById('tweek').textContent=`KW ${kw} · ${now.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'})}`;
+    buildStepper();
+    goStep(1);
+  } else {
+    document.getElementById('lerr').textContent='PIN falsch.';
+    document.getElementById('pin').value='';
+  }
+}
+function doLogout(){
+  document.getElementById('app').style.display='none';
+  document.getElementById('login').style.display='flex';
+  document.getElementById('pin').value='';
+  document.getElementById('lerr').textContent='';
+}
+function getKW(d){const jan4=new Date(d.getFullYear(),0,4);const start=new Date(jan4);start.setDate(jan4.getDate()-(jan4.getDay()||7)+1);return Math.ceil((d-start)/604800000)+1}
+
+const STEPS=[
+  {n:1,label:'Upload'},
+  {n:2,label:'Übersicht'},
+  {n:3,label:'Kassengespräche'},
+  {n:4,label:'Storno & Belege'},
+  {n:5,label:'Abschluss'}
+];
+
+function buildStepper(){
+  const bar=document.getElementById('stepper');
+  bar.innerHTML='';
+  STEPS.forEach(s=>{
+    const el=document.createElement('div');
+    el.className='step-tab'+(s.n===currentStep?' active':'')+(s.n<currentStep?' done':'');
+    el.id='stab-'+s.n;
+    el.onclick=()=>{if(s.n<=currentStep||s.n===currentStep+1)goStep(s.n)};
+    el.innerHTML=s.n<currentStep
+      ?`<span class="scheck">✓</span>${s.label}`
+      :`<span class="snum">${s.n}</span>${s.label}`;
+    bar.appendChild(el);
+  });
+  const pct=((currentStep-1)/4)*100;
+  document.getElementById('progress').style.width=pct+'%';
+}
+
+function goStep(n){
+  currentStep=n;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+n).classList.add('active');
+  buildStepper();
+  if(n===2)renderStep2();
+  if(n===3)renderOpos();
+  if(n===4)renderStep4();
+  if(n===5)renderStep5();
+  window.scrollTo(0,0);
+}
+
+// ── DRAG & DROP ──────────────────────────────────────────
+function dzOver(e,id){e.preventDefault();document.getElementById(id).classList.add('drag')}
+function dzLeave(id){document.getElementById(id).classList.remove('drag')}
+function dzDrop(e,type){
+  e.preventDefault();
+  const id='dz-'+type;
+  document.getElementById(id).classList.remove('drag');
+  const f=e.dataTransfer.files[0];
+  if(f&&f.type==='application/pdf')processPDF(f,type);
+}
+function loadPDF(inp,type){if(inp.files[0])processPDF(inp.files[0],type)}
+
+async function processPDF(file,type){
+  const stat=document.getElementById('us-'+type);
+  const lbl=document.getElementById('dl-'+type);
+  lbl.innerHTML='<span style="color:var(--teal)">Wird gelesen …</span>';
+  stat.className='ustat';stat.textContent='';
+  try{
+    const buf=await file.arrayBuffer();
+    const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+    let text='';
+    for(let i=1;i<=pdf.numPages;i++){
+      const page=await pdf.getPage(i);
+      const c=await page.getTextContent();
+      text+=c.items.map(x=>x.str).join(' ')+'\n';
+    }
+    if(type==='opos'){parseOpos(text);const n=oposData.length;stat.className='ustat ok';stat.textContent=n+' Posten erkannt';document.getElementById('dz-opos').classList.add('ok');}
+    else if(type==='storno'){parseStorno(text);stat.className='ustat ok';stat.textContent=stornoData.length+' Stornos erkannt';document.getElementById('dz-storno').classList.add('ok');}
+    else{azText=text;stat.className='ustat ok';stat.textContent='Belege eingelesen';document.getElementById('dz-az').classList.add('ok');}
+    lbl.innerHTML='<span style="color:var(--teal)">✓ '+file.name+'</span>';
+  }catch(e){
+    lbl.innerHTML='<span style="color:var(--red)">Fehler beim Lesen</span>';
+    stat.className='ustat err';stat.textContent='Datei konnte nicht gelesen werden.';
+  }
+  checkStep1Ready();
+}
+
+function checkStep1Ready(){
+  document.getElementById('btn-weiter-1').disabled=oposData.length===0;
+}
+
+// ── OPOS PARSE ────────────────────────────────────────────
+function parseOpos(text){
+  oposData=[];
+  const kontoBlocks=text.split(/Konto:\s*(\d+)/);
+  for(let bi=1;bi<kontoBlocks.length;bi+=2){
+    const konto=kontoBlocks[bi].trim();
+    const block=kontoBlocks[bi+1]||'';
+    const kasse=KONTO_KASSE[konto]||'Konto '+konto;
+    const isPrivat=PRIVAT_KONTEN.includes(konto);
+    const entryRe=/1011\s+\d{5}([\s\S]*?)(?=1011\s+\d{5}|Zwischensumme|$)/g;
+    let m;
+    while((m=entryRe.exec(block))!==null){
+      const chunk=m[1];
+      const patM=chunk.match(/([A-ZÄÖÜa-zäöüß][^\n,]+),\s*([A-Za-z0-9]+),/);
+      if(!patM)continue;
+      const patient=patM[1].trim();
+      const versNr=patM[2].trim();
+      const zM=chunk.match(/(\d{2}\.\d{2}\.\d{4})-(\d{2}\.\d{2}\.\d{4})/);
+      const zeitraum=zM?zM[1]+'–'+zM[2]:'';
+      const dates=[],dr=/\d{2}\.\d{2}\.\d{4}/g;let dm;
+      while((dm=dr.exec(chunk))!==null)dates.push(dm[0]);
+      const amts=[],ar=/(\d{1,3}(?:\.\d{3})*,\d{2})\s*€/g;let am;
+      while((am=ar.exec(chunk))!==null)amts.push(parseFloat(am[1].replace(/\./g,'').replace(',','.')));
+      if(amts.length<2)continue;
+      const mM=chunk.match(/\b(2i|2|1)\b/);
+      const srM=chunk.match(/Sammelreferenz:\s*(A\S+)/);
+      oposData.push({konto,kasse,isPrivat,patient,versNr,zeitraum,
+        faktDatum:dates[0]||'',zahlZiel:dates[1]||'',
+        faktBetrag:amts[0],restBetrag:amts[1],
+        mahnstufe:mM?mM[1]:'0',sammelRef:srM?srM[1]:''});
+    }
+  }
+}
+
+// ── STORNO PARSE ──────────────────────────────────────────
+function parseStorno(text){
+  stornoData=[];
+  const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
+  lines.forEach((line,i)=>{
+    if(!/(\d{1,3}(?:\.\d{3})*,\d{2})\s*€/.test(line))return;
+    if(!/\d{2}\.\d{2}\.\d{4}/.test(line))return;
+    const pM=line.match(/([A-ZÄÖÜa-zäöüß][a-zäöüßA-ZÄÖÜ\-\s]+),\s*([A-Za-z0-9]+)/);
+    if(!pM)return;
+    const amts=[],ar=/(\d{1,3}(?:\.\d{3})*,\d{2})\s*€/g;let am;
+    while((am=ar.exec(line))!==null)amts.push(parseFloat(am[1].replace(/\./g,'').replace(',','.')));
+    const dM=line.match(/\d{2}\.\d{2}\.\d{4}/);
+    stornoData.push({id:'st'+i,patient:pM[1].trim(),versNr:pM[2].trim(),
+      betrag:amts[0]||0,datum:dM?dM[0]:'',status:'check'});
+  });
+}
+
+// ── SCHRITT 2: ÜBERSICHT ──────────────────────────────────
+function renderStep2(){
+  const total=oposData.reduce((s,x)=>s+x.restBetrag,0);
+  const m2=oposData.filter(x=>x.mahnstufe==='2'||x.mahnstufe==='2i');
+  const m1=oposData.filter(x=>x.mahnstufe==='1');
+  const priv=oposData.filter(x=>x.isPrivat);
+  const dubQuote=priv.length&&oposData.length?((priv.reduce((s,x)=>s+x.restBetrag,0)/total)*100):0;
+
+  document.getElementById('metrics2').innerHTML=`
+    <div class="metric ${m2.length>0?'alert':''}">
+      <div class="mlabel">Mahnstufe 2</div>
+      <div class="mval">${m2.length}</div>
+    </div>
+    <div class="metric">
+      <div class="mlabel">Mahnstufe 1</div>
+      <div class="mval">${m1.length}</div>
+    </div>
+    <div class="metric ${dubQuote>5?'alert':''}">
+      <div class="mlabel">Dubiosen-Quote</div>
+      <div class="mval">${dubQuote.toFixed(1)}%</div>
+    </div>
+    <div class="metric">
+      <div class="mlabel">Restbetrag gesamt</div>
+      <div class="mval">${fmt(total)}</div>
+    </div>`;
+
+  const prio=[];
+  if(m2.length>0)prio.push({level:'red',title:`${m2.length} Posten auf Mahnstufe 2 — sofort klären`,hint:'Diese Forderungen sind überfällig. Bei weiterer Verzögerung droht Abschreibung. Im nächsten Schritt als Erstes abarbeiten.',icon:'!'});
+  if(dubQuote>5)prio.push({level:'red',title:`Dubiosen-Quote ${dubQuote.toFixed(1)}% — Ziel max. 3–5%`,hint:'Privatanteile müssen durch HOMECARE direkt kontaktiert werden — AS Bremen hat keinen Zugriff auf diese Daten.',icon:'!'});
+  if(stornoData.length>0)prio.push({level:'amber',title:`${stornoData.length} Stornierungen zu bearbeiten`,hint:'In Schritt 4 kategorisieren: Act / Check / Privat / Call / Solve & Submit / Wait. Liste bis zum 15. des Monats an AS Bremen senden.',icon:'~'});
+  if(azText)prio.push({level:'teal',title:'Auszahlungsbelege zur Kontrolle vorhanden',hint:'Prüfen ob Stornos gutgeschrieben wurden, Rückbelastungen und Lastschriften korrekt sind.',icon:'i'});
+  const groups=groupByKasse(oposData);
+  const topKasse=groups[0];
+  if(topKasse)prio.push({level:'teal',title:`${topKasse.kasse}: ${fmt(topKasse.posten.reduce((s,x)=>s+x.restBetrag,0))} offen (${topKasse.posten.length} Posten)`,hint:'Größte Einzelkasse — mit diesem Anruf die meiste offene Forderung klären.',icon:'i'});
+
+  const prioEl=document.getElementById('prio-liste');
+  if(!prio.length){prioEl.innerHTML='<div class="infobox teal">Kein dringender Handlungsbedarf erkannt.</div>';return;}
+  prioEl.innerHTML=prio.map(p=>`
+    <div class="azcard" style="border-left:3px solid ${p.level==='red'?'var(--red)':p.level==='amber'?'var(--amber-bd)':'var(--teal-bd)'};border-radius:0 var(--r) var(--r) 0;margin-bottom:8px">
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <div style="width:22px;height:22px;border-radius:50%;background:${p.level==='red'?'var(--red-bg)':p.level==='amber'?'var(--amber-bg)':'var(--teal-bg)'};color:${p.level==='red'?'var(--red)':p.level==='amber'?'var(--amber)':'var(--teal)'};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:1px">${p.icon}</div>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px">${p.title}</div>
+          <div style="font-size:12px;color:var(--t2);line-height:1.5">${p.hint}</div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// ── SCHRITT 3: OPOS ───────────────────────────────────────
+function groupByKasse(data){
+  const map={};
+  data.forEach(p=>{
+    const k=p.kasse+'|'+p.konto;
+    if(!map[k])map[k]={kasse:p.kasse,konto:p.konto,isPrivat:p.isPrivat,posten:[]};
+    map[k].posten.push(p);
+  });
+  const arr=Object.values(map);
+  arr.sort((a,b)=>b.posten.reduce((s,x)=>s+x.restBetrag,0)-a.posten.reduce((s,x)=>s+x.restBetrag,0));
+  arr.forEach(g=>g.posten.sort((a,b)=>b.restBetrag-a.restBetrag));
+  return arr;
+}
+
+function setF(f,btn){
+  oposFilter=f;
+  document.querySelectorAll('.fpill').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderOpos();
+}
+
+function renderOpos(){
+  if(!oposData.length){
+    document.getElementById('opos-list').innerHTML='<div class="empty"><strong>Keine OPOS-Daten</strong>Bitte in Schritt 1 die OPOS-PDF hochladen.</div>';
+    return;
+  }
+  const q=(document.getElementById('opos-search')||{}).value?.toLowerCase()||'';
+  let data=oposData;
+  if(oposFilter==='m2')data=data.filter(x=>x.mahnstufe==='2'||x.mahnstufe==='2i');
+  if(oposFilter==='m1')data=data.filter(x=>x.mahnstufe==='1');
+  if(oposFilter==='privat')data=data.filter(x=>x.isPrivat);
+  if(oposFilter==='offen')data=data.filter(x=>!oposDone['done_'+x.konto+x.versNr]);
+  if(q)data=data.filter(x=>x.kasse.toLowerCase().includes(q)||x.patient.toLowerCase().includes(q)||x.versNr.toLowerCase().includes(q));
+
+  const groups=groupByKasse(data);
+  const total=data.reduce((s,x)=>s+x.restBetrag,0);
+  const done=groups.filter(g=>oposDone['done_'+g.konto]).length;
+
+  document.getElementById('opos-hint').textContent=
+    `${groups.length} Kassen · ${data.length} Posten · ${fmt(total)} offen · ${done} von ${groupByKasse(oposData).length} Anrufe erledigt`;
+
+  const list=document.getElementById('opos-list');
+  list.innerHTML='';
+  groups.forEach((g,gi)=>{
+    const gid='g'+gi+g.konto;
+    const sumRest=g.posten.reduce((s,x)=>s+x.restBetrag,0);
+    const sumFakt=g.posten.reduce((s,x)=>s+x.faktBetrag,0);
+    const maxM=g.posten.some(x=>x.mahnstufe==='2'||x.mahnstufe==='2i')?'2':g.posten.some(x=>x.mahnstufe==='1')?'1':'0';
+    const isDone=oposDone['done_'+g.konto];
+    const pats=[...new Set(g.posten.map(p=>p.patient))];
+    const refs=[...new Set(g.posten.map(p=>p.sammelRef).filter(Boolean))];
+
+    const banner=g.isPrivat
+      ?`<div class="anruf-banner ab-priv"><strong>Hinweis Privat:</strong> Direktkontakt notwendig — Kasse hat keinen Zugriff.<br>${g.posten.length} Rechnung${g.posten.length>1?'en':''} · Gesamt: <strong>${fmt(sumRest)}</strong></div>`
+      :`<div class="anruf-banner ab-kasse"><strong>Gesprächsvorbereitung:</strong> ${pats.length} Patient${pats.length>1?'en':''} — ${pats.join(', ')}<br>Offener Gesamtbetrag: <strong>${fmt(sumRest)}</strong>${refs.length?' · Sammelreferenzen: '+refs.join(', ')':''}</div>`;
+
+    const rows=g.posten.map(p=>`<tr>
+      <td style="font-weight:500">${p.patient}</td>
+      <td style="color:var(--t2);font-size:11px">${p.versNr}</td>
+      <td style="color:var(--t2);font-size:11px">${p.zeitraum}</td>
+      <td class="tr">${fmt(p.faktBetrag)}</td>
+      <td class="tr ${p.restBetrag>500?'th-red':'th-teal'}">${fmt(p.restBetrag)}</td>
+      <td style="text-align:center">${mBadge(p.mahnstufe)}</td>
+      <td style="font-size:11px;color:var(--t2)">${p.zahlZiel}</td>
+    </tr>`).join('');
+
+    const card=document.createElement('div');
+    card.className='kasse-card'+(isDone?' is-done':'');
+    card.innerHTML=`
+      <div class="khead" onclick="toggleK('${gid}')">
+        <div class="kname">${g.kasse}<span class="kkto">Kto. ${g.konto}</span>${isDone?' <span class="badge b-done">Erledigt</span>':''}</div>
+        <div class="badges">
+          <span class="badge b-n">${g.posten.length} Posten</span>
+          <span class="badge b-sum">${fmt(sumRest)}</span>
+          ${maxM==='2'?'<span class="badge b-m2">M2</span>':''}
+          ${maxM==='1'?'<span class="badge b-m1">M1</span>':''}
+          ${g.isPrivat?'<span class="badge b-priv">Privat</span>':''}
+        </div>
+        <span class="chev" id="chev-${gid}">▼</span>
+      </div>
+      <div class="kbody" id="body-${gid}">
+        ${banner}
+        <div style="overflow-x:auto">
+          <table class="ptbl">
+            <thead><tr>
+              <th>Patient</th><th>Vers.-Nr.</th><th>Zeitraum</th>
+              <th style="text-align:right">Fakt.-Betrag</th>
+              <th style="text-align:right">Restbetrag</th>
+              <th style="text-align:center">M</th><th>Zahlungsziel</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+            <tfoot><tr class="tfoot-row">
+              <td colspan="3">Summe</td>
+              <td class="tr">${fmt(sumFakt)}</td>
+              <td class="tr">${fmt(sumRest)}</td>
+              <td colspan="2"></td>
+            </tr></tfoot>
+          </table>
+        </div>
+        <div class="notiz-row">
+          <span class="notiz-lbl">Gesprächsnotiz</span>
+          <textarea class="notiz-ta" placeholder="Datum, Ansprechpartner, Ergebnis, Zusagen …"
+            oninput="oposNotes['${gid}']=this.value">${oposNotes[gid]||''}</textarea>
+        </div>
+        <div class="kfooter">
+          <button class="done-btn ${isDone?'done':''}" onclick="markDone('${g.konto}','${gid}',this)">
+            ${isDone?'Erledigt ✓':'Als erledigt markieren'}
+          </button>
+        </div>
+      </div>`;
+    list.appendChild(card);
+  });
+}
+
+function toggleK(gid){
+  const b=document.getElementById('body-'+gid);
+  const c=document.getElementById('chev-'+gid);
+  b.classList.toggle('open');
+  c.classList.toggle('open',b.classList.contains('open'));
+}
+
+function markDone(konto,gid,btn){
+  oposDone['done_'+konto]=!oposDone['done_'+konto];
+  renderOpos();
+}
+
+// ── SCHRITT 4: STORNO & AUSZAHLUNG ───────────────────────
+const STORNO_STATUSES=['check','act','call','privat','wait','solve'];
+const STORNO_LABELS={check:'Prüfen',act:'Act',call:'Call',privat:'Privat',wait:'Wait',solve:'Gelöst'};
+
+function renderStep4(){
+  const wrap=document.getElementById('storno-table-wrap');
+  if(!stornoData.length){
+    wrap.innerHTML='<div class="infobox gold">Keine Storno-PDF hochgeladen — dieser Schritt kann übersprungen werden.</div>';
+  } else {
+    let rows=stornoData.map((s,i)=>{
+      const stat=stornoStatus[s.id]||'check';
+      return`<tr>
+        <td style="font-weight:500">${s.patient}<br><span style="font-size:11px;color:var(--t3)">${s.versNr}</span></td>
+        <td style="font-variant-numeric:tabular-nums">${fmt(s.betrag)}</td>
+        <td style="font-size:12px;color:var(--t2)">${s.datum}</td>
+        <td>
+          <select class="status-sel" onchange="stornoStatus['${s.id}']=this.value">
+            ${STORNO_STATUSES.map(sv=>`<option value="${sv}"${stat===sv?' selected':''}>${STORNO_LABELS[sv]}</option>`).join('')}
+          </select>
+        </td>
+      </tr>`;
+    }).join('');
+    wrap.innerHTML=`<div style="overflow-x:auto"><table class="stbl">
+      <thead><tr>
+        <th>Patient</th><th>Betrag</th><th>Datum</th><th>Status</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+    <div class="infobox gold" style="margin-top:12px">
+      <strong>Farbschema:</strong> Act = sofort handeln · Call = Kasse anrufen · Privat = Direktkontakt · Wait = abwarten · Prüfen = unklar · Gelöst = erledigt.<br>
+      Liste bis zum <strong>15. des Monats</strong> an AS Bremen senden.
+    </div>`;
+  }
+
+  const azWrap=document.getElementById('az-checks');
+  const AZ_ITEMS=[
+    {id:'az1',label:'Stornos gutgeschrieben?',warn:false},
+    {id:'az2',label:'Rückbelastungen vorhanden und geprüft?',warn:false},
+    {id:'az3',label:'Lastschriften korrekt?',warn:false},
+    {id:'az4',label:'Auszahlungsbetrag mit Erwartungswert abgeglichen?',warn:false},
+    {id:'az5',label:'Abweichungen dokumentiert und an Standortleiter gemeldet?',warn:false},
+  ];
+  azWrap.innerHTML=`
+    ${!azText?'<div class="infobox gold">Keine Auszahlungsbelege hochgeladen — Checkliste trotzdem nutzbar.</div>':''}
+    <div class="azcard">
+      <div class="azcheck">
+        ${AZ_ITEMS.map(item=>`
+          <div class="azitem ${azChecked[item.id]?'checked':''}" onclick="toggleAz('${item.id}',this)">
+            <div class="azchk">${azChecked[item.id]?'✓':''}</div>
+            <span class="azlabel">${item.label}</span>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function toggleAz(id,el){
+  azChecked[id]=!azChecked[id];
+  el.classList.toggle('checked',azChecked[id]);
+  el.querySelector('.azchk').textContent=azChecked[id]?'✓':'';
+  el.querySelector('.azlabel').style.color=azChecked[id]?'var(--teal)':'var(--t2)';
+}
+
+// ── SCHRITT 5: ABSCHLUSS ──────────────────────────────────
+function renderStep5(){
+  const groups=groupByKasse(oposData);
+  const doneCount=groups.filter(g=>oposDone['done_'+g.konto]).length;
+  const total=oposData.reduce((s,x)=>s+x.restBetrag,0);
+  const m2=oposData.filter(x=>x.mahnstufe==='2'||x.mahnstufe==='2i').length;
+  const stornoGel=Object.values(stornoStatus).filter(v=>v==='solve').length;
+  const azDone=Object.values(azChecked).filter(Boolean).length;
+  const azTotal=5;
+
+  document.getElementById('woche-summary').innerHTML=`
+    <div class="summary-card">
+      <div class="summary-row">
+        <span class="summary-label">Kassengespräche erledigt</span>
+        <span class="summary-val ${doneCount===groups.length?'ok':'warn'}">${doneCount} / ${groups.length}</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">Verbleibende offene Forderungen</span>
+        <span class="summary-val">${fmt(total)}</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">Posten Mahnstufe 2 (noch offen)</span>
+        <span class="summary-val ${m2>0?'red':'ok'}">${m2}</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">Stornos bearbeitet</span>
+        <span class="summary-val">${stornoGel} / ${stornoData.length} gelöst</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">Auszahlungsbelege geprüft</span>
+        <span class="summary-val ${azDone===azTotal?'ok':'warn'}">${azDone} / ${azTotal} Punkte</span>
+      </div>
+    </div>`;
+
+  const VORB=[
+    {id:'v1',title:'Budgets kontrollieren',hint:'Stornos gutgeschrieben? Rückbelastungen? Lastschriften? Monat durchklicken.',pflicht:true},
+    {id:'v2',title:'Anträge & Bewilligungen vorbereiten (Neukunden)',hint:'§36 Kombileistung, §39 Verhinderungspflege, §45b Abtretungserklärung. Fax-Nachweis in Akte heften und in heimbas dokumentieren.',pflicht:true},
+    {id:'v3',title:'QS-Termine (Höherstufung) vorbereiten',hint:'Telefonisch klären. Servicemitarbeiter rechtzeitig einbeziehen.',pflicht:false},
+    {id:'v4',title:'Privatanteile frühzeitig kommunizieren',hint:'Servicemitarbeiter informieren — Versicherte müssen früh genug bescheid wissen.',pflicht:true},
+    {id:'v5',title:'Eintrittsstatistik aktualisieren',hint:'Auch ersichtlich via Dokumente/Kunden-digitalisiert/AAA Neukunden.',pflicht:false},
+    {id:'v6',title:'Kunden-digitalisiert: Upload & Benennung',hint:'Wöchentlicher Turnus. Dateien nach Namensschema benennen und in Unterordner einordnen.',pflicht:false},
+    {id:'v7',title:'DTA- und Factoring-Daten vorbereiten',hint:'Separate Mails an AS Bremen: 1× DTA-Daten + Protokoll, 1× Factoring-Daten + Protokoll.',pflicht:true},
+  ];
+
+  const cl=document.getElementById('vorb-checklist');
+  cl.innerHTML=VORB.map(v=>`
+    <div class="check-item ${azChecked['vorb_'+v.id]?'checked':''}" onclick="toggleVorb('${v.id}',this)">
+      <div class="check-box"><span class="check-mark">✓</span></div>
+      <div class="ci-body">
+        <div class="ci-title">${v.title}<span class="ci-badge ${v.pflicht?'ci-pflicht':'ci-opt'}">${v.pflicht?'Pflicht':'Optional'}</span></div>
+        <div class="ci-hint">${v.hint}</div>
+      </div>
+    </div>`).join('');
+}
+
+function toggleVorb(id,el){
+  azChecked['vorb_'+id]=!azChecked['vorb_'+id];
+  el.classList.toggle('checked',azChecked['vorb_'+id]);
+}
+
+function resetWoche(){
+  oposData=[];stornoData=[];azText='';
+  Object.keys(oposNotes).forEach(k=>delete oposNotes[k]);
+  Object.keys(oposDone).forEach(k=>delete oposDone[k]);
+  Object.keys(stornoStatus).forEach(k=>delete stornoStatus[k]);
+  Object.keys(azChecked).forEach(k=>delete azChecked[k]);
+  ['opos','storno','az'].forEach(t=>{
+    const dz=document.getElementById('dz-'+t);
+    dz.classList.remove('ok');
+    document.getElementById('dl-'+t).innerHTML='<strong>PDF auswählen</strong><br>oder hierher ziehen';
+    document.getElementById('us-'+t).textContent='';
+    document.getElementById('fi-'+t).value='';
+  });
+  goStep(1);
+}
+</script>
+</body>
+</html>
