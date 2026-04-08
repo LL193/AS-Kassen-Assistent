@@ -291,6 +291,31 @@ input[type=file]{display:none}
       <div class="uc" id="wsumm" style="margin-bottom:20px"></div>
       <div class="sdiv"><div class="sdln"></div><div class="sdlb">Vorbereitung nächste Abrechnung</div><div class="sdln"></div></div>
       <div id="vorbcl"></div>
+
+      <div class="sdiv" style="margin-top:24px"><div class="sdln"></div><div class="sdlb">Export & Session</div><div class="sdln"></div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px">
+        <div class="uc">
+          <div class="uct">Woche exportieren</div>
+          <div class="ucs" style="margin-bottom:14px">Alle Notizen, Stornos und Checklisten als Datei speichern</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="bn" id="btnXlsx">Excel herunterladen</button>
+            <button class="bs" id="btnPdf">PDF herunterladen</button>
+          </div>
+        </div>
+        <div class="uc">
+          <div class="uct">Session speichern / laden</div>
+          <div class="ucs" style="margin-bottom:14px">Datensatz für nächste Woche sichern — alle Daten bleiben erhalten</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="bn" id="btnSave">Session speichern</button>
+            <div class="dz" id="dz-session" style="padding:7px 12px;flex:1;min-width:130px">
+              <div class="dzl" id="dl-session" style="font-size:12px"><strong>Session laden</strong> (.json)</div>
+            </div>
+            <input type="file" id="fi-session" accept=".json">
+          </div>
+          <div class="ust" id="us-session" style="margin-top:6px"></div>
+        </div>
+      </div>
+
       <div class="snav"><button class="bs" id="b5b">← Zurück</button><div class="sp"></div><button class="bp" id="b5r">Neue Woche starten</button></div>
     </div>
   </div>
@@ -381,6 +406,14 @@ input[type=file]{display:none}
   el('b4n').addEventListener('click',function(){goStep(5)});
   el('b5b').addEventListener('click',function(){goStep(4)});
   el('b5r').addEventListener('click',resetWoche);
+  el('btnXlsx').addEventListener('click',exportExcel);
+  el('btnPdf').addEventListener('click',exportPdf);
+  el('btnSave').addEventListener('click',saveSession);
+  el('dz-session').addEventListener('click',function(){el('fi-session').click()});
+  el('dz-session').addEventListener('dragover',function(e){e.preventDefault();el('dz-session').style.borderColor='var(--gbd)'});
+  el('dz-session').addEventListener('dragleave',function(){el('dz-session').style.borderColor=''});
+  el('dz-session').addEventListener('drop',function(e){e.preventDefault();el('dz-session').style.borderColor='';var f=e.dataTransfer.files[0];if(f)loadSession(f)});
+  el('fi-session').addEventListener('change',function(){if(el('fi-session').files[0])loadSession(el('fi-session').files[0])});
 
   // UPLOAD
   ['opos','storno','az'].forEach(function(t){
@@ -658,6 +691,223 @@ input[type=file]{display:none}
     VORB.forEach(function(v){
       el('vcl_'+v.id).addEventListener('click',function(){vck[v.id]=!vck[v.id];renderStep5()});
     });
+  }
+
+  // ── SESSION SAVE / LOAD ──────────────────────────────────
+  function saveSession(){
+    var now=new Date();
+    var dateStr=now.toISOString().slice(0,10);
+    var session={
+      version:1,
+      savedAt:now.toISOString(),
+      weekLabel:'KW '+kw(now)+' '+now.getFullYear(),
+      opos:opos,
+      stor:stor,
+      onotes:onotes,
+      odone:odone,
+      sstat:sstat,
+      azck:azck,
+      vck:vck
+    };
+    var blob=new Blob([JSON.stringify(session,null,2)],{type:'application/json'});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='AS-Kassen-Session_'+dateStr+'.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  function loadSession(file){
+    var stat=el('us-session');
+    var reader=new FileReader();
+    reader.onload=function(e){
+      try{
+        var s=JSON.parse(e.target.result);
+        if(!s.version||!s.opos){throw new Error('Ungültiges Format')}
+        opos=s.opos||[];
+        stor=s.stor||[];
+        Object.assign(onotes,s.onotes||{});
+        Object.assign(odone,s.odone||{});
+        Object.assign(sstat,s.sstat||{});
+        Object.assign(azck,s.azck||{});
+        Object.assign(vck,s.vck||{});
+        stat.className='ust ok';
+        stat.textContent='Session geladen: '+s.weekLabel+' ('+opos.length+' OPOS-Posten)';
+        el('dl-session').innerHTML='<span style="color:var(--teal)">\u2713 '+file.name+'</span>';
+        el('dz-session').classList.add('ok');
+        el('btn1').disabled=opos.length===0;
+      }catch(err){
+        stat.className='ust err';
+        stat.textContent='Fehler: Datei konnte nicht geladen werden.';
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  // ── EXCEL EXPORT ─────────────────────────────────────────
+  function exportExcel(){
+    var now=new Date();
+    var dateStr=now.toISOString().slice(0,10);
+    var allG=groupKasse(opos);
+    var AZ_LBL=['Stornos gutgeschrieben?','Rückbelastungen geprüft?','Lastschriften korrekt?','Auszahlungsbetrag abgeglichen?','Abweichungen dokumentiert?'];
+
+    // Sheet 1: OPOS Kassengespräche
+    var oposRows=[['Kasse','Konto','Patient','Vers.-Nr.','Zeitraum','Fakt.-Betrag','Restbetrag','Mahnstufe','Zahlungsziel','Erledigt','Gesprächsnotiz']];
+    allG.forEach(function(g,gi){
+      var gid='g'+gi+g.konto;
+      var isDone=!!odone['d_'+g.konto];
+      var note=onotes[gid]||'';
+      g.posten.forEach(function(p){
+        oposRows.push([g.kasse,g.konto,p.patient,p.versNr,p.zeitraum,p.fakt,p.rest,p.mahn,p.zahlZiel,isDone?'Ja':'Nein',note]);
+      });
+    });
+
+    // Sheet 2: Stornos
+    var storRows=[['Patient','Vers.-Nr.','Betrag','Datum','Status']];
+    stor.forEach(function(s){storRows.push([s.patient,s.versNr,s.betrag,s.datum,s.status||'check'])});
+
+    // Sheet 3: Checklisten
+    var clRows=[['Bereich','Aufgabe','Erledigt']];
+    AZ_LBL.forEach(function(lbl,i){clRows.push(['Auszahlungsbelege',lbl,azck['az'+i]?'Ja':'Nein'])});
+    VORB.forEach(function(v){clRows.push(['Vorbereitung',v.ti,vck[v.id]?'Ja':'Nein'])});
+
+    // Build minimal XLSX (XML-based, no lib needed)
+    function escXml(v){
+      if(v===undefined||v===null)return'';
+      return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+    function sheetXml(rows){
+      var xml='<?xml version="1.0" encoding="UTF-8"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>';
+      rows.forEach(function(row,ri){
+        xml+='<row r="'+(ri+1)+'">';
+        row.forEach(function(cell,ci){
+          var col=String.fromCharCode(65+ci);
+          var ref=col+(ri+1);
+          var val=escXml(cell);
+          var isNum=typeof cell==='number';
+          if(isNum){xml+='<c r="'+ref+'" t="n"><v>'+val+'</v></c>';}
+          else{xml+='<c r="'+ref+'" t="inlineStr"><is><t>'+val+'</t></is></c>';}
+        });
+        xml+='</row>';
+      });
+      xml+='</sheetData></worksheet>';
+      return xml;
+    }
+
+    var wb='<?xml version="1.0" encoding="UTF-8"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="OPOS Kassengespräche" sheetId="1" r:id="rId1"/><sheet name="Stornos" sheetId="2" r:id="rId2"/><sheet name="Checklisten" sheetId="3" r:id="rId3"/></sheets></workbook>';
+    var rels='<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet3.xml"/></Relationships>';
+    var ct='<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet3.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>';
+
+    // Use JSZip from CDN
+    var script=document.createElement('script');
+    script.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+    script.onload=function(){
+      var zip=new JSZip();
+      zip.file('[Content_Types].xml',ct);
+      zip.folder('_rels').file('.rels','<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>');
+      var xl=zip.folder('xl');
+      xl.file('workbook.xml',wb);
+      xl.folder('_rels').file('workbook.xml.rels',rels);
+      var ws=xl.folder('worksheets');
+      ws.file('sheet1.xml',sheetXml(oposRows));
+      ws.file('sheet2.xml',sheetXml(storRows));
+      ws.file('sheet3.xml',sheetXml(clRows));
+      zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}).then(function(blob){
+        var a=document.createElement('a');
+        a.href=URL.createObjectURL(blob);
+        a.download='AS-Kassen-Woche_'+dateStr+'.xlsx';
+        a.click();
+        URL.revokeObjectURL(a.href);
+      });
+    };
+    document.head.appendChild(script);
+  }
+
+  // ── PDF EXPORT ───────────────────────────────────────────
+  function exportPdf(){
+    var now=new Date();
+    var dateStr=now.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});
+    var allG=groupKasse(opos);
+    var total=opos.reduce(function(s,x){return s+x.rest},0);
+    var m2=opos.filter(function(x){return x.mahn==='2'||x.mahn==='2i'}).length;
+    var AZ_LBL=['Stornos gutgeschrieben?','Rückbelastungen geprüft?','Lastschriften korrekt?','Auszahlungsbetrag abgeglichen?','Abweichungen dokumentiert?'];
+    var SLBL={check:'Prüfen',act:'Act',call:'Call',privat:'Privat',wait:'Wait',solve:'Gelöst'};
+
+    var html='<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><title>AS-Kassen-Assistent Wochenbericht</title><style>';
+    html+='body{font-family:Arial,sans-serif;font-size:11px;color:#1a1916;margin:24px}';
+    html+='h1{font-size:16px;font-weight:normal;margin-bottom:4px}';
+    html+='.sub{font-size:11px;color:#6b6860;margin-bottom:20px}';
+    html+='h2{font-size:13px;font-weight:bold;margin:20px 0 8px;border-bottom:1px solid #e2ddd4;padding-bottom:4px}';
+    html+='h3{font-size:12px;font-weight:bold;margin:12px 0 4px;color:#0f6e56}';
+    html+='.metrics{display:flex;gap:16px;margin-bottom:16px}';
+    html+='.met{border:1px solid #e2ddd4;border-radius:6px;padding:8px 12px;min-width:100px}';
+    html+='.ml{font-size:9px;text-transform:uppercase;color:#9e9b93;margin-bottom:2px}';
+    html+='.mv{font-size:16px}';
+    html+='table{width:100%;border-collapse:collapse;margin-bottom:12px}';
+    html+='th{text-align:left;padding:5px 7px;font-size:10px;background:#f9f7f3;border-bottom:1px solid #e2ddd4;color:#6b6860}';
+    html+='td{padding:5px 7px;border-bottom:1px solid #e2ddd4;font-size:11px;vertical-align:top}';
+    html+='.notiz{background:#f5edd8;border-left:3px solid #d4a843;padding:5px 8px;margin:4px 0 10px;font-size:11px;color:#7a5c18}';
+    html+='.done{color:#0f6e56;font-weight:bold}.open{color:#854f0b}';
+    html+='.ck{color:#0f6e56}.unk{color:#9e9b93}';
+    html+='@media print{body{margin:12px}h2{page-break-before:auto}}';
+    html+='</style></head><body>';
+    html+='<h1>AS-Kassen-Assistent — Wochenbericht</h1>';
+    html+='<div class="sub">Erstellt am '+dateStr+' &nbsp;|&nbsp; '+opos.length+' Posten &nbsp;|&nbsp; Restbetrag gesamt: '+fmt(total)+'</div>';
+
+    // Metrics
+    var doneC=allG.filter(function(g){return odone['d_'+g.konto]}).length;
+    html+='<div class="metrics">';
+    html+='<div class="met"><div class="ml">Kassengespräche</div><div class="mv">'+doneC+'/'+allG.length+'</div></div>';
+    html+='<div class="met"><div class="ml">Restbetrag</div><div class="mv">'+fmt(total)+'</div></div>';
+    html+='<div class="met"><div class="ml">Mahnstufe 2</div><div class="mv '+(m2>0?'open':'done')+'">'+m2+'</div></div>';
+    html+='<div class="met"><div class="ml">Stornos</div><div class="mv">'+stor.length+'</div></div>';
+    html+='</div>';
+
+    // OPOS
+    html+='<h2>Kassengespräche</h2>';
+    allG.forEach(function(g,gi){
+      var gid='g'+gi+g.konto;
+      var isDone=!!odone['d_'+g.konto];
+      var note=onotes[gid]||'';
+      var sr=g.posten.reduce(function(s,x){return s+x.rest},0);
+      html+='<h3>'+g.kasse+' (Kto. '+g.konto+') &mdash; '+fmt(sr)+' &nbsp;<span style="font-weight:normal;color:'+(isDone?'#0f6e56':'#854f0b')+'">'+(isDone?'&#10003; Erledigt':'Offen')+'</span></h3>';
+      html+='<table><thead><tr><th>Patient</th><th>Vers.-Nr.</th><th>Zeitraum</th><th>Restbetrag</th><th>M</th><th>Zahlungsziel</th></tr></thead><tbody>';
+      g.posten.forEach(function(p){
+        html+='<tr><td>'+p.patient+'</td><td>'+p.versNr+'</td><td>'+p.zeitraum+'</td><td style="font-variant-numeric:tabular-nums;color:'+(p.rest>500?'#a32d2d':'#0f6e56')+'">'+fmt(p.rest)+'</td><td>'+p.mahn+'</td><td>'+p.zahlZiel+'</td></tr>';
+      });
+      html+='</tbody></table>';
+      if(note)html+='<div class="notiz"><strong>Notiz:</strong> '+note.replace(/\n/g,'<br>')+'</div>';
+    });
+
+    // Stornos
+    if(stor.length){
+      html+='<h2>Stornierungen</h2>';
+      html+='<table><thead><tr><th>Patient</th><th>Vers.-Nr.</th><th>Betrag</th><th>Datum</th><th>Status</th></tr></thead><tbody>';
+      stor.forEach(function(s){
+        html+='<tr><td>'+s.patient+'</td><td>'+s.versNr+'</td><td>'+fmt(s.betrag)+'</td><td>'+s.datum+'</td><td>'+(SLBL[sstat[s.id]||'check']||'Prüfen')+'</td></tr>';
+      });
+      html+='</tbody></table>';
+    }
+
+    // Checklisten
+    html+='<h2>Checklisten</h2>';
+    html+='<table><thead><tr><th>Bereich</th><th>Aufgabe</th><th>Status</th></tr></thead><tbody>';
+    AZ_LBL.forEach(function(lbl,i){
+      var ck=!!azck['az'+i];
+      html+='<tr><td>Auszahlungsbelege</td><td>'+lbl+'</td><td class="'+(ck?'ck':'unk')+'">'+(ck?'&#10003; Erledigt':'Offen')+'</td></tr>';
+    });
+    VORB.forEach(function(v){
+      var ck=!!vck[v.id];
+      html+='<tr><td>Vorbereitung</td><td>'+v.ti+'</td><td class="'+(ck?'ck':'unk')+'">'+(ck?'&#10003; Erledigt':'Offen')+'</td></tr>';
+    });
+    html+='</tbody></table>';
+    html+='</body></html>';
+
+    var w=window.open('','_blank');
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    setTimeout(function(){w.print()},600);
   }
 
   function resetWoche(){
