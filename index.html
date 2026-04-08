@@ -3,228 +3,195 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HOMECARE — Wochenassistent</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<title>AS-Kassen-Assistent</title>
 <style>
 :root{
-  --bg:#f4f1eb;--surface:#fff;--s2:#f9f7f3;
-  --border:#e2ddd4;--border2:#ccc8be;
-  --text:#1a1916;--t2:#6b6860;--t3:#9e9b93;
-  --gold:#7a5c18;--gold-bg:#f5edd8;--gold-bd:#d4a843;
-  --teal:#0f6e56;--teal-bg:#e1f5ee;--teal-bd:#5dcaa5;
-  --red:#a32d2d;--red-bg:#fcebeb;--red-bd:#f09595;
-  --amber:#854f0b;--amber-bg:#faeeda;--amber-bd:#ef9f27;
+  --bg:#f4f1eb;--sur:#fff;--s2:#f9f7f3;
+  --bd:#e2ddd4;--bd2:#ccc8be;
+  --tx:#1a1916;--t2:#6b6860;--t3:#9e9b93;
+  --gold:#7a5c18;--gbg:#f5edd8;--gbd:#d4a843;
+  --teal:#0f6e56;--tbg:#e1f5ee;--tbd:#5dcaa5;
+  --red:#a32d2d;--rbg:#fcebeb;--rbd:#f09595;
+  --amb:#854f0b;--abg:#faeeda;--abd:#ef9f27;
   --r:10px;--rs:6px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5}
-
+body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;font-size:14px}
+/* LOGIN */
 #login{min-height:100vh;display:flex;align-items:center;justify-content:center}
-.lbox{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:44px 52px;width:340px;text-align:center}
-.leyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--t3);margin-bottom:6px}
-.ltitle{font-size:20px;color:var(--text);margin-bottom:28px;font-family:Georgia,serif;font-weight:normal}
-.pin{width:100%;padding:12px;border:1px solid var(--border);border-radius:var(--rs);font-size:22px;letter-spacing:.3em;text-align:center;background:var(--surface);color:var(--text);outline:none;margin-bottom:12px;transition:border-color .15s}
-.pin:focus{border-color:var(--gold-bd)}
-.lbtn{width:100%;padding:11px;background:var(--text);color:#fff;border:none;border-radius:var(--rs);font-size:14px;cursor:pointer;letter-spacing:.04em;transition:opacity .15s}
+.lbox{background:var(--sur);border:1px solid var(--bd);border-radius:16px;padding:44px 52px;width:340px;text-align:center}
+.ley{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--t3);margin-bottom:6px}
+.lti{font-size:20px;color:var(--tx);margin-bottom:28px;font-family:Georgia,serif;font-weight:normal}
+.pin{width:100%;padding:12px;border:1px solid var(--bd);border-radius:var(--rs);font-size:22px;letter-spacing:.3em;text-align:center;background:var(--sur);color:var(--tx);outline:none;margin-bottom:12px;transition:border-color .15s}
+.pin:focus{border-color:var(--gbd)}
+.lbtn{width:100%;padding:11px;background:var(--tx);color:#fff;border:none;border-radius:var(--rs);font-size:14px;cursor:pointer}
 .lbtn:hover{opacity:.85}
 .lerr{font-size:12px;color:var(--red);margin-top:10px;min-height:18px}
-
+/* APP */
 #app{display:none}
-.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;display:flex;align-items:center;gap:16px;height:50px}
+.topbar{background:var(--sur);border-bottom:1px solid var(--bd);padding:0 24px;display:flex;align-items:center;gap:14px;height:50px}
 .tlogo{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--t3)}
-.tsep{width:1px;height:18px;background:var(--border)}
-.ttitle{font-size:13px;color:var(--t2);flex:1}
+.tsep{width:1px;height:18px;background:var(--bd)}
+.ttit{font-size:13px;color:var(--t2);flex:1}
 .tweek{font-size:12px;color:var(--t3)}
-.tlogout{font-size:12px;color:var(--t3);border:none;background:none;cursor:pointer;padding:4px 8px}
-.tlogout:hover{color:var(--text)}
-
-.stepper-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;display:flex;align-items:stretch;gap:0;overflow-x:auto}
-.step-tab{display:flex;align-items:center;gap:8px;padding:12px 18px;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;color:var(--t2);transition:all .15s;font-size:13px}
-.step-tab:hover{color:var(--text)}
-.step-tab.active{color:var(--gold);border-bottom-color:var(--gold-bd)}
-.step-tab.done{color:var(--teal)}
-.step-tab.done .snum{background:var(--teal-bg);color:var(--teal)}
-.step-tab.locked{color:var(--t3);cursor:not-allowed}
-.snum{width:20px;height:20px;border-radius:50%;background:var(--bg);color:var(--t3);font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:500;transition:all .15s}
-.step-tab.active .snum{background:var(--gold-bg);color:var(--gold)}
-.scheck{width:20px;height:20px;border-radius:50%;background:var(--teal-bg);color:var(--teal);font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-
-.content{padding:28px;max-width:1040px;margin:0 auto}
-.page{display:none}.page.active{display:block}
-
+.tout{font-size:12px;color:var(--t3);border:none;background:none;cursor:pointer;padding:4px 8px}
+.tout:hover{color:var(--tx)}
+/* STEPPER */
+.stepbar{background:var(--sur);border-bottom:1px solid var(--bd);padding:0 24px;display:flex;overflow-x:auto}
+.stab{display:flex;align-items:center;gap:8px;padding:12px 16px;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;color:var(--t2);font-size:13px;transition:all .15s}
+.stab:hover{color:var(--tx)}
+.stab.active{color:var(--gold);border-bottom-color:var(--gbd)}
+.stab.done{color:var(--teal)}
+.snum{width:20px;height:20px;border-radius:50%;background:var(--bg);color:var(--t3);font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:500}
+.stab.active .snum{background:var(--gbg);color:var(--gold)}
+.stab.done .snum{background:var(--tbg);color:var(--teal)}
+/* CONTENT */
+.wrap{padding:24px;max-width:1020px;margin:0 auto}
+.pg{display:none}.pg.active{display:block}
+.pbar{height:3px;background:var(--bd);border-radius:2px;margin-bottom:22px}
+.pfill{height:100%;background:var(--gbd);border-radius:2px;transition:width .4s}
 /* STEP HEADER */
-.step-header{margin-bottom:24px}
-.step-eyebrow{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--t3);margin-bottom:6px}
-.step-title{font-size:20px;color:var(--text);font-family:Georgia,serif;font-weight:normal;margin-bottom:8px}
-.step-desc{font-size:13px;color:var(--t2);line-height:1.6;max-width:620px}
-
+.sey{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--t3);margin-bottom:4px}
+.sti{font-size:19px;color:var(--tx);font-family:Georgia,serif;font-weight:normal;margin-bottom:6px}
+.sde{font-size:13px;color:var(--t2);line-height:1.6;max-width:600px;margin-bottom:22px}
 /* UPLOAD */
-.upload-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
-.ucard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px}
-.ucard-title{font-size:13px;font-weight:500;margin-bottom:3px;color:var(--text)}
-.ucard-sub{font-size:12px;color:var(--t2);margin-bottom:12px}
-.dropzone{border:1.5px dashed var(--border2);border-radius:var(--rs);padding:20px 12px;text-align:center;cursor:pointer;background:var(--s2);transition:all .15s}
-.dropzone:hover,.dropzone.drag{border-color:var(--gold-bd);background:var(--gold-bg)}
-.dropzone.ok{border-color:var(--teal-bd);background:var(--teal-bg)}
-.dz-lbl{font-size:12px;color:var(--t2)}.dz-lbl strong{color:var(--text)}
-.ustat{margin-top:8px;font-size:12px;color:var(--t2);min-height:16px}
-.ustat.ok{color:var(--teal)}.ustat.err{color:var(--red)}
+.ugrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+.uc{background:var(--sur);border:1px solid var(--bd);border-radius:var(--r);padding:18px}
+.uct{font-size:13px;font-weight:500;margin-bottom:3px}
+.ucs{font-size:12px;color:var(--t2);margin-bottom:12px}
+.dz{border:1.5px dashed var(--bd2);border-radius:var(--rs);padding:20px 12px;text-align:center;cursor:pointer;background:var(--s2);transition:all .15s}
+.dz:hover{border-color:var(--gbd);background:var(--gbg)}
+.dz.ok{border-color:var(--tbd);background:var(--tbg)}
+.dzl{font-size:12px;color:var(--t2)}.dzl strong{color:var(--tx)}
+.ust{margin-top:8px;font-size:12px;color:var(--t2);min-height:16px}
+.ust.ok{color:var(--teal)}.ust.err{color:var(--red)}
 input[type=file]{display:none}
-
 /* BUTTONS */
-.btn-primary{padding:10px 22px;background:var(--text);color:#fff;border:none;border-radius:var(--rs);font-size:13px;cursor:pointer;letter-spacing:.03em;transition:opacity .15s}
-.btn-primary:hover{opacity:.85}
-.btn-primary:disabled{opacity:.35;cursor:not-allowed}
-.btn-sec{padding:9px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);font-size:13px;cursor:pointer;color:var(--t2);transition:all .15s}
-.btn-sec:hover{background:var(--bg);color:var(--text)}
-.btn-next{padding:10px 24px;background:var(--gold-bg);border:1px solid var(--gold-bd);border-radius:var(--rs);font-size:13px;cursor:pointer;color:var(--gold);letter-spacing:.03em;transition:all .15s}
-.btn-next:hover{background:var(--gold-bd);color:#fff}
-
+.bp{padding:10px 22px;background:var(--tx);color:#fff;border:none;border-radius:var(--rs);font-size:13px;cursor:pointer}
+.bp:hover{opacity:.85}.bp:disabled{opacity:.35;cursor:not-allowed}
+.bs{padding:9px 18px;background:var(--sur);border:1px solid var(--bd);border-radius:var(--rs);font-size:13px;cursor:pointer;color:var(--t2)}
+.bs:hover{background:var(--bg)}
+.bn{padding:10px 22px;background:var(--gbg);border:1px solid var(--gbd);border-radius:var(--rs);font-size:13px;cursor:pointer;color:var(--gold)}
+.bn:hover{background:var(--gbd);color:#fff}
 /* METRICS */
-.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px}
-.metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px}
-.metric.alert{border-color:var(--red-bd);background:var(--red-bg)}
-.metric.alert .mlabel{color:var(--red)}
-.metric.alert .mval{color:var(--red)}
-.mlabel{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--t3);margin-bottom:4px}
-.mval{font-size:20px;font-weight:400;color:var(--text)}
-
-/* CHECKLIST */
-.checklist{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
-.check-item{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);cursor:pointer;transition:all .15s}
-.check-item:hover{border-color:var(--border2)}
-.check-item.checked{opacity:.6}
-.check-item.checked .ci-title{text-decoration:line-through;color:var(--t3)}
-.check-box{width:18px;height:18px;border:1.5px solid var(--border2);border-radius:4px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:all .15s}
-.check-item.checked .check-box{background:var(--teal);border-color:var(--teal)}
-.check-mark{color:#fff;font-size:11px;display:none}
-.check-item.checked .check-mark{display:block}
-.ci-body{flex:1}
-.ci-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:2px}
-.ci-hint{font-size:12px;color:var(--t2);line-height:1.5}
-.ci-badge{display:inline-block;font-size:10px;padding:1px 7px;border-radius:999px;margin-left:6px;vertical-align:middle}
-.ci-pflicht{background:var(--red-bg);color:var(--red)}
-.ci-opt{background:var(--s2);color:var(--t2)}
-
-/* SECTION DIVIDER */
-.sdiv{display:flex;align-items:center;gap:10px;margin:20px 0 12px}
-.sdiv-label{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);white-space:nowrap}
-.sdiv-line{flex:1;height:1px;background:var(--border)}
-
-/* FILTER BAR */
+.mets{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.met{background:var(--sur);border:1px solid var(--bd);border-radius:var(--rs);padding:12px 14px}
+.met.al{border-color:var(--rbd);background:var(--rbg)}
+.met.al .ml{color:var(--red)}.met.al .mv{color:var(--red)}
+.ml{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--t3);margin-bottom:4px}
+.mv{font-size:20px}
+/* INFOBOX */
+.ib{padding:11px 14px;border-radius:var(--rs);font-size:12px;line-height:1.6;margin-bottom:14px}
+.ib.gold{background:var(--gbg);border:1px solid var(--gbd);color:var(--gold)}
+.ib.teal{background:var(--tbg);border:1px solid var(--tbd);color:var(--teal)}
+.ib.red{background:var(--rbg);border:1px solid var(--rbd);color:var(--red)}
+/* PRIO ITEMS */
+.pitem{display:flex;gap:10px;align-items:flex-start;background:var(--sur);border:1px solid var(--bd);border-radius:var(--rs);padding:12px 14px;margin-bottom:8px}
+.pitem.red{border-left:3px solid var(--red);border-radius:0 var(--rs) var(--rs) 0}
+.pitem.amb{border-left:3px solid var(--abd);border-radius:0 var(--rs) var(--rs) 0}
+.pitem.teal{border-left:3px solid var(--tbd);border-radius:0 var(--rs) var(--rs) 0}
+.picon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:1px}
+.picon.red{background:var(--rbg);color:var(--red)}
+.picon.amb{background:var(--abg);color:var(--amb)}
+.picon.teal{background:var(--tbg);color:var(--teal)}
+.pti{font-size:13px;font-weight:500;margin-bottom:2px}
+.phi{font-size:12px;color:var(--t2);line-height:1.5}
+/* FILTER */
 .fbar{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
-.fpill{padding:4px 12px;font-size:12px;border:1px solid var(--border);border-radius:999px;cursor:pointer;background:var(--surface);color:var(--t2);transition:all .15s}
-.fpill:hover{background:var(--bg)}
-.fpill.active{background:var(--gold-bg);border-color:var(--gold-bd);color:var(--gold)}
-.fsearch{margin-left:auto;padding:5px 11px;border:1px solid var(--border);border-radius:var(--rs);font-size:12px;background:var(--surface);color:var(--text);outline:none;width:200px}
-.fsearch:focus{border-color:var(--gold-bd)}
-
-/* KASSEN CARDS */
-.kasse-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;overflow:hidden}
-.kasse-card.is-done{opacity:.55}
-.khead{display:flex;align-items:center;gap:10px;padding:11px 16px;cursor:pointer;user-select:none;transition:background .1s}
-.khead:hover{background:var(--s2)}
-.kname{font-size:13px;flex:1;font-weight:500}
+.fp{padding:4px 12px;font-size:12px;border:1px solid var(--bd);border-radius:999px;cursor:pointer;background:var(--sur);color:var(--t2)}
+.fp:hover{background:var(--bg)}.fp.active{background:var(--gbg);border-color:var(--gbd);color:var(--gold)}
+.fs{margin-left:auto;padding:5px 11px;border:1px solid var(--bd);border-radius:var(--rs);font-size:12px;background:var(--sur);color:var(--tx);outline:none;width:190px}
+.fs:focus{border-color:var(--gbd)}
+/* KASSEN */
+.kc{background:var(--sur);border:1px solid var(--bd);border-radius:var(--r);margin-bottom:8px;overflow:hidden}
+.kc.done{opacity:.55}
+.kh{display:flex;align-items:center;gap:10px;padding:11px 16px;cursor:pointer;user-select:none}
+.kh:hover{background:var(--s2)}
+.kn{font-size:13px;flex:1;font-weight:500}
 .kkto{font-size:11px;color:var(--t3);font-weight:400;margin-left:5px}
-.badges{display:flex;gap:5px;align-items:center}
-.badge{font-size:11px;padding:2px 9px;border-radius:999px;white-space:nowrap}
-.b-n{background:#e6f1fb;color:#0c447c}
-.b-sum{background:var(--teal-bg);color:var(--teal)}
-.b-m2{background:var(--red-bg);color:var(--red)}
-.b-m1{background:var(--amber-bg);color:var(--amber)}
-.b-priv{background:#faeeda;color:#412402}
-.b-done{background:var(--teal-bg);color:var(--teal)}
-.chev{font-size:11px;color:var(--t3);transition:transform .15s}
-.chev.open{transform:rotate(180deg)}
-.kbody{display:none;border-top:1px solid var(--border)}
-.kbody.open{display:block}
-.anruf-banner{padding:10px 16px;font-size:12px;line-height:1.6;border-bottom:1px solid var(--border)}
-.ab-kasse{background:var(--teal-bg);color:#085041}
-.ab-priv{background:var(--amber-bg);color:#412402}
+.bgs{display:flex;gap:5px;align-items:center}
+.bg{font-size:11px;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.bg-n{background:#e6f1fb;color:#0c447c}
+.bg-s{background:var(--tbg);color:var(--teal)}
+.bg-m2{background:var(--rbg);color:var(--red)}
+.bg-m1{background:var(--abg);color:var(--amb)}
+.bg-p{background:#faeeda;color:#412402}
+.bg-d{background:var(--tbg);color:var(--teal)}
+.chv{font-size:11px;color:var(--t3);transition:transform .15s}
+.chv.op{transform:rotate(180deg)}
+.kb{display:none;border-top:1px solid var(--bd)}
+.kb.op{display:block}
+.ab{padding:10px 16px;font-size:12px;line-height:1.6;border-bottom:1px solid var(--bd)}
+.ab.k{background:var(--tbg);color:#085041}
+.ab.p{background:var(--abg);color:#412402}
 .ptbl{width:100%;border-collapse:collapse;font-size:12px}
-.ptbl th{padding:6px 10px;text-align:left;font-size:11px;font-weight:500;color:var(--t2);background:var(--s2);border-bottom:1px solid var(--border);letter-spacing:.03em}
-.ptbl td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.ptbl th{padding:6px 10px;text-align:left;font-size:11px;font-weight:500;color:var(--t2);background:var(--s2);border-bottom:1px solid var(--bd)}
+.ptbl td{padding:7px 10px;border-bottom:1px solid var(--bd);vertical-align:middle}
 .ptbl tr:last-child td{border-bottom:none}
 .ptbl tr:hover td{background:var(--s2)}
 .tr{text-align:right;font-variant-numeric:tabular-nums}
-.th-red{color:var(--red)}.th-teal{color:var(--teal)}
-.mbadge{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font-size:10px}
-.m0{background:#f1efe8;color:#444}.m1{background:var(--amber-bg);color:var(--amber)}.m2{background:var(--red-bg);color:var(--red)}.m2i{background:#e6f1fb;color:#0c447c}
-.tfoot-row td{background:var(--s2);font-size:12px;color:var(--t2);border-top:1px solid var(--border)!important;border-bottom:none!important}
-.notiz-row{padding:10px 16px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:flex-start}
-.notiz-lbl{font-size:11px;color:var(--t3);padding-top:7px;min-width:80px}
-.notiz-ta{flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:var(--rs);font-size:12px;background:var(--surface);color:var(--text);resize:vertical;min-height:44px;outline:none;font-family:inherit;line-height:1.5}
-.notiz-ta:focus{border-color:var(--gold-bd)}
-.kfooter{padding:9px 16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px}
-.done-btn{padding:5px 14px;font-size:12px;border:1px solid var(--border);border-radius:var(--rs);cursor:pointer;background:var(--surface);color:var(--t2);transition:all .15s}
-.done-btn:hover{background:var(--bg)}
-.done-btn.done{background:var(--teal-bg);color:var(--teal);border-color:var(--teal-bd)}
-
-/* STORNO TABLE */
-.stbl{width:100%;border-collapse:collapse;font-size:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
-.stbl th{padding:8px 12px;text-align:left;font-size:11px;font-weight:500;color:var(--t2);background:var(--s2);border-bottom:1px solid var(--border);letter-spacing:.03em}
-.stbl td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.hi{color:var(--red)}.lo{color:var(--teal)}
+.mb{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font-size:10px}
+.m0{background:#f1efe8;color:#444}.m1{background:var(--abg);color:var(--amb)}.m2{background:var(--rbg);color:var(--red)}.m2i{background:#e6f1fb;color:#0c447c}
+.tfoot td{background:var(--s2);font-size:12px;color:var(--t2);border-top:1px solid var(--bd)!important;border-bottom:none!important}
+.nr{padding:10px 16px;border-top:1px solid var(--bd);display:flex;gap:10px;align-items:flex-start}
+.nl{font-size:11px;color:var(--t3);padding-top:7px;min-width:80px}
+.nta{flex:1;padding:6px 10px;border:1px solid var(--bd);border-radius:var(--rs);font-size:12px;background:var(--sur);color:var(--tx);resize:vertical;min-height:44px;outline:none;font-family:inherit;line-height:1.5}
+.nta:focus{border-color:var(--gbd)}
+.kf{padding:9px 16px;border-top:1px solid var(--bd);display:flex;align-items:center;gap:8px}
+.db{padding:5px 14px;font-size:12px;border:1px solid var(--bd);border-radius:var(--rs);cursor:pointer;background:var(--sur);color:var(--t2)}
+.db:hover{background:var(--bg)}.db.done{background:var(--tbg);color:var(--teal);border-color:var(--tbd)}
+/* STORNO */
+.stbl{width:100%;border-collapse:collapse;font-size:12px}
+.stbl th{padding:8px 12px;text-align:left;font-size:11px;font-weight:500;color:var(--t2);background:var(--s2);border-bottom:1px solid var(--bd)}
+.stbl td{padding:8px 12px;border-bottom:1px solid var(--bd);vertical-align:middle}
 .stbl tr:last-child td{border-bottom:none}
 .stbl tr:hover td{background:var(--s2)}
-.status-sel{padding:3px 7px;border:1px solid var(--border);border-radius:4px;font-size:11px;background:var(--surface);color:var(--text);outline:none;cursor:pointer}
-
-/* AUSZAHLUNG */
-.azcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;margin-bottom:10px}
-.azcard-title{font-size:13px;font-weight:500;margin-bottom:10px;color:var(--text)}
-.azcheck{display:flex;flex-direction:column;gap:6px}
-.azitem{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);cursor:pointer;transition:all .15s}
-.azitem:hover{border-color:var(--border2)}
-.azitem.checked{background:var(--teal-bg);border-color:var(--teal-bd)}
-.azitem.checked .azlabel{color:var(--teal)}
-.azchk{width:16px;height:16px;border:1.5px solid var(--border2);border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff}
-.azitem.checked .azchk{background:var(--teal);border-color:var(--teal)}
-.azlabel{font-size:12px;color:var(--t2);flex:1}
-.azitem.checked .azlabel{color:var(--teal)}
-.azwarn{font-size:12px;color:var(--red);font-weight:500}
-.azwarn-item{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--red-bg);border:1px solid var(--red-bd);border-radius:var(--rs);font-size:12px;color:var(--red);margin-bottom:6px}
-
-/* ABSCHLUSS */
-.summary-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;margin-bottom:12px}
-.summary-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
-.summary-row:last-child{border-bottom:none}
-.summary-label{color:var(--t2)}
-.summary-val{font-weight:500}
-.summary-val.ok{color:var(--teal)}
-.summary-val.warn{color:var(--amber)}
-.summary-val.red{color:var(--red)}
-
-/* PROGRESS */
-.progress-bar{height:3px;background:var(--border);border-radius:2px;margin-bottom:20px;overflow:hidden}
-.progress-fill{height:100%;background:var(--gold-bd);border-radius:2px;transition:width .4s ease}
-
-/* INFO BOX */
-.infobox{padding:11px 14px;border-radius:var(--rs);font-size:12px;line-height:1.6;margin-bottom:16px}
-.infobox.gold{background:var(--gold-bg);border:1px solid var(--gold-bd);color:var(--gold)}
-.infobox.teal{background:var(--teal-bg);border:1px solid var(--teal-bd);color:var(--teal)}
-.infobox.red{background:var(--red-bg);border:1px solid var(--red-bd);color:var(--red)}
-
-.step-nav{display:flex;align-items:center;gap:10px;margin-top:28px;padding-top:20px;border-top:1px solid var(--border)}
-.spacer{flex:1}
-
-.empty{text-align:center;padding:48px 20px;color:var(--t3);font-size:13px}
-.empty strong{display:block;color:var(--t2);margin-bottom:6px;font-size:14px}
-
-@media(max-width:700px){
-  .upload-grid{grid-template-columns:1fr}
-  .metrics{grid-template-columns:1fr 1fr}
-  .content{padding:16px}
-}
+.ssel{padding:3px 7px;border:1px solid var(--bd);border-radius:4px;font-size:11px;background:var(--sur);color:var(--tx);outline:none;cursor:pointer}
+/* AZ CHECKS */
+.azit{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--bd);border-radius:var(--rs);cursor:pointer;margin-bottom:6px;transition:all .15s}
+.azit:hover{border-color:var(--bd2)}
+.azit.ck{background:var(--tbg);border-color:var(--tbd)}
+.azit.ck .azl{color:var(--teal)}
+.azbox{width:16px;height:16px;border:1.5px solid var(--bd2);border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff}
+.azit.ck .azbox{background:var(--teal);border-color:var(--teal)}
+.azl{font-size:12px;color:var(--t2);flex:1}
+/* CHECKLIST */
+.cli{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:var(--sur);border:1px solid var(--bd);border-radius:var(--rs);cursor:pointer;margin-bottom:8px}
+.cli.ck{opacity:.65}
+.cli.ck .cit{text-decoration:line-through;color:var(--t3)}
+.clbox{width:18px;height:18px;border:1.5px solid var(--bd2);border-radius:4px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff}
+.cli.ck .clbox{background:var(--teal);border-color:var(--teal)}
+.cit{font-size:13px;font-weight:500;margin-bottom:2px}
+.cih{font-size:12px;color:var(--t2);line-height:1.5}
+.cbadge{font-size:10px;padding:1px 7px;border-radius:999px;margin-left:6px}
+.cpfl{background:var(--rbg);color:var(--red)}
+.copt{background:var(--s2);color:var(--t2)}
+/* SUMMARY */
+.srow{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bd);font-size:13px}
+.srow:last-child{border-bottom:none}
+.slb{color:var(--t2)}.svl{font-weight:500}
+.svl.ok{color:var(--teal)}.svl.wa{color:var(--amb)}.svl.re{color:var(--red)}
+/* SDIV */
+.sdiv{display:flex;align-items:center;gap:10px;margin:20px 0 12px}
+.sdlb{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);white-space:nowrap}
+.sdln{flex:1;height:1px;background:var(--bd)}
+/* NAV */
+.snav{display:flex;align-items:center;gap:10px;margin-top:28px;padding-top:20px;border-top:1px solid var(--bd)}
+.sp{flex:1}
+.emp{text-align:center;padding:40px 20px;color:var(--t3);font-size:13px}
+.emp strong{display:block;color:var(--t2);margin-bottom:6px;font-size:14px}
+@media(max-width:680px){.ugrid{grid-template-columns:1fr}.mets{grid-template-columns:1fr 1fr}.wrap{padding:16px}}
 </style>
 </head>
 <body>
 
 <div id="login">
   <div class="lbox">
-    <div class="leyebrow">HOMECARE</div>
-    <div class="ltitle">Wochenassistent</div>
-    <input class="pin" type="password" id="pin" placeholder="· · · ·" maxlength="6"
-      onkeydown="if(event.key==='Enter')doLogin()">
-    <button class="lbtn" onclick="doLogin()">Anmelden</button>
+    <div class="ley">HOMECARE</div>
+    <div class="lti">AS-Kassen-Assistent</div>
+    <input class="pin" type="password" id="pin" placeholder="· · · ·" maxlength="6">
+    <button class="lbtn" id="lbtn">Anmelden</button>
     <div class="lerr" id="lerr"></div>
   </div>
 </div>
@@ -233,640 +200,480 @@ input[type=file]{display:none}
   <div class="topbar">
     <span class="tlogo">HOMECARE</span>
     <div class="tsep"></div>
-    <span class="ttitle">Wochenassistent — Verwaltung</span>
+    <span class="ttit">AS-Kassen-Assistent</span>
     <span class="tweek" id="tweek"></span>
-    <button class="tlogout" onclick="doLogout()">Abmelden</button>
+    <button class="tout" id="tout">Abmelden</button>
   </div>
+  <div class="stepbar" id="stepbar"></div>
+  <div class="wrap">
+    <div class="pbar"><div class="pfill" id="pfill"></div></div>
 
-  <div class="stepper-bar" id="stepper"></div>
-
-  <div class="content">
-    <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
-
-    <!-- SCHRITT 1: Upload -->
-    <div class="page" id="page-1">
-      <div class="step-header">
-        <div class="step-eyebrow">Schritt 1 von 5</div>
-        <div class="step-title">Dokumente hochladen</div>
-        <div class="step-desc">Lade die drei wöchentlichen Dokumente aus AS Bremen hoch. Die Daten werden nur lokal im Browser verarbeitet — nichts wird übertragen oder gespeichert.</div>
-      </div>
-      <div class="upload-grid">
-        <div class="ucard">
-          <div class="ucard-title">OPOS-Liste</div>
-          <div class="ucard-sub">Offene Postenliste aus AS Bremen</div>
-          <div class="dropzone" id="dz-opos"
-            onclick="document.getElementById('fi-opos').click()"
-            ondragover="dzOver(event,'dz-opos')" ondragleave="dzLeave('dz-opos')" ondrop="dzDrop(event,'opos')">
-            <div class="dz-lbl" id="dl-opos"><strong>PDF auswählen</strong><br>oder hierher ziehen</div>
+    <div class="pg" id="pg1">
+      <div class="sey">Schritt 1 von 5</div>
+      <div class="sti">Dokumente hochladen</div>
+      <div class="sde">Lade die wöchentlichen Dokumente aus AS Bremen hoch. Alles wird nur lokal im Browser verarbeitet — nichts wird übertragen.</div>
+      <div class="ugrid">
+        <div class="uc">
+          <div class="uct">OPOS-Liste</div>
+          <div class="ucs">Offene Postenliste aus AS Bremen</div>
+          <div class="dz" id="dz-opos">
+            <div class="dzl" id="dl-opos"><strong>PDF auswählen</strong><br>oder hierher ziehen</div>
           </div>
-          <input type="file" id="fi-opos" accept=".pdf" onchange="loadPDF(this,'opos')">
-          <div class="ustat" id="us-opos"></div>
+          <input type="file" id="fi-opos" accept=".pdf">
+          <div class="ust" id="us-opos"></div>
         </div>
-        <div class="ucard">
-          <div class="ucard-title">Storno-Liste</div>
-          <div class="ucard-sub">Stornierungen aus heimbas / AS Bremen</div>
-          <div class="dropzone" id="dz-storno"
-            onclick="document.getElementById('fi-storno').click()"
-            ondragover="dzOver(event,'dz-storno')" ondragleave="dzLeave('dz-storno')" ondrop="dzDrop(event,'storno')">
-            <div class="dz-lbl" id="dl-storno"><strong>PDF auswählen</strong><br>oder hierher ziehen</div>
+        <div class="uc">
+          <div class="uct">Storno-Liste</div>
+          <div class="ucs">Stornierungen aus heimbas / AS Bremen</div>
+          <div class="dz" id="dz-storno">
+            <div class="dzl" id="dl-storno"><strong>PDF auswählen</strong><br>oder hierher ziehen</div>
           </div>
-          <input type="file" id="fi-storno" accept=".pdf" onchange="loadPDF(this,'storno')">
-          <div class="ustat" id="us-storno"></div>
+          <input type="file" id="fi-storno" accept=".pdf">
+          <div class="ust" id="us-storno"></div>
         </div>
-        <div class="ucard">
-          <div class="ucard-title">Auszahlungsbelege</div>
-          <div class="ucard-sub">Auszahlungsprotokoll AS Bremen</div>
-          <div class="dropzone" id="dz-az"
-            onclick="document.getElementById('fi-az').click()"
-            ondragover="dzOver(event,'dz-az')" ondragleave="dzLeave('dz-az')" ondrop="dzDrop(event,'az')">
-            <div class="dz-lbl" id="dl-az"><strong>PDF auswählen</strong><br>oder hierher ziehen</div>
+        <div class="uc">
+          <div class="uct">Auszahlungsbelege</div>
+          <div class="ucs">Auszahlungsprotokoll AS Bremen</div>
+          <div class="dz" id="dz-az">
+            <div class="dzl" id="dl-az"><strong>PDF auswählen</strong><br>oder hierher ziehen</div>
           </div>
-          <input type="file" id="fi-az" accept=".pdf" onchange="loadPDF(this,'az')">
-          <div class="ustat" id="us-az"></div>
+          <input type="file" id="fi-az" accept=".pdf">
+          <div class="ust" id="us-az"></div>
         </div>
       </div>
-      <div class="infobox gold">
-        Mindestens die OPOS-Liste wird benötigt. Storno und Auszahlung können auch später hinzugefügt werden.
-      </div>
-      <div class="step-nav">
-        <div class="spacer"></div>
-        <button class="btn-next" id="btn-weiter-1" onclick="goStep(2)" disabled>
-          Weiter zur Übersicht →
-        </button>
-      </div>
+      <div class="ib gold">Mindestens die OPOS-Liste wird benötigt. Storno und Auszahlung können später hinzugefügt werden.</div>
+      <div class="snav"><div class="sp"></div><button class="bn" id="btn1" disabled>Weiter zur Übersicht →</button></div>
     </div>
 
-    <!-- SCHRITT 2: Prioritäten-Übersicht -->
-    <div class="page" id="page-2">
-      <div class="step-header">
-        <div class="step-eyebrow">Schritt 2 von 5</div>
-        <div class="step-title">Prioritäten-Übersicht</div>
-        <div class="step-desc">Automatische Auswertung der hochgeladenen Dokumente. Rot markierte Bereiche erfordern sofortiges Handeln.</div>
-      </div>
-      <div class="metrics" id="metrics2"></div>
-
-      <div class="sdiv"><div class="sdiv-line"></div><div class="sdiv-label">Handlungsbedarf diese Woche</div><div class="sdiv-line"></div></div>
-      <div id="prio-liste"></div>
-
-      <div class="step-nav">
-        <button class="btn-sec" onclick="goStep(1)">← Zurück</button>
-        <div class="spacer"></div>
-        <button class="btn-next" onclick="goStep(3)">Weiter: Kassengespräche →</button>
-      </div>
+    <div class="pg" id="pg2">
+      <div class="sey">Schritt 2 von 5</div>
+      <div class="sti">Prioritäten-Übersicht</div>
+      <div class="sde">Automatische Auswertung. Rot markierte Bereiche erfordern sofortiges Handeln.</div>
+      <div class="mets" id="mets2"></div>
+      <div class="sdiv"><div class="sdln"></div><div class="sdlb">Handlungsbedarf diese Woche</div><div class="sdln"></div></div>
+      <div id="prioli"></div>
+      <div class="snav"><button class="bs" id="b2b">← Zurück</button><div class="sp"></div><button class="bn" id="b2n">Weiter: Kassengespräche →</button></div>
     </div>
 
-    <!-- SCHRITT 3: OPOS Kassengespräche -->
-    <div class="page" id="page-3">
-      <div class="step-header">
-        <div class="step-eyebrow">Schritt 3 von 5</div>
-        <div class="step-title">Kassengespräche vorbereiten</div>
-        <div class="step-desc">Pro Kasse eine Anrufmappe — sortiert nach Gesamtrestbetrag. Innerhalb eines Anrufs alle Versicherten dieser Kasse besprechen. Notizen direkt eintragen.</div>
-      </div>
-      <div class="infobox teal" id="opos-hint"></div>
+    <div class="pg" id="pg3">
+      <div class="sey">Schritt 3 von 5</div>
+      <div class="sti">Kassengespräche vorbereiten</div>
+      <div class="sde">Pro Kasse eine Anrufmappe — sortiert nach Gesamtrestbetrag. Alle Versicherten einer Kasse in einem Anruf besprechen.</div>
+      <div class="ib teal" id="ohint"></div>
       <div class="fbar">
-        <button class="fpill active" onclick="setF('alle',this)">Alle</button>
-        <button class="fpill" onclick="setF('m2',this)">Mahnstufe 2</button>
-        <button class="fpill" onclick="setF('m1',this)">Mahnstufe 1</button>
-        <button class="fpill" onclick="setF('privat',this)">Privat</button>
-        <button class="fpill" onclick="setF('offen',this)">Nicht erledigt</button>
-        <input class="fsearch" type="text" placeholder="Suchen …" id="opos-search" oninput="renderOpos()">
+        <button class="fp active" data-f="alle">Alle</button>
+        <button class="fp" data-f="m2">Mahnstufe 2</button>
+        <button class="fp" data-f="m1">Mahnstufe 1</button>
+        <button class="fp" data-f="privat">Privat</button>
+        <button class="fp" data-f="offen">Nicht erledigt</button>
+        <input class="fs" type="text" placeholder="Suchen …" id="osearch">
       </div>
-      <div id="opos-list"></div>
-      <div class="step-nav">
-        <button class="btn-sec" onclick="goStep(2)">← Zurück</button>
-        <div class="spacer"></div>
-        <button class="btn-next" onclick="goStep(4)">Weiter: Stornos →</button>
-      </div>
+      <div id="olist"></div>
+      <div class="snav"><button class="bs" id="b3b">← Zurück</button><div class="sp"></div><button class="bn" id="b3n">Weiter: Stornos →</button></div>
     </div>
 
-    <!-- SCHRITT 4: Stornos & Auszahlung -->
-    <div class="page" id="page-4">
-      <div class="step-header">
-        <div class="step-eyebrow">Schritt 4 von 5</div>
-        <div class="step-title">Stornos & Auszahlungsbelege</div>
-        <div class="step-desc">Stornierungen nach Farbschema kategorisieren. Anschließend Auszahlungsbelege kontrollieren — Stornos gutgeschrieben? Rückbelastungen? Lastschriften?</div>
-      </div>
-
-      <div class="sdiv"><div class="sdiv-line"></div><div class="sdiv-label">Stornierungen</div><div class="sdiv-line"></div></div>
-      <div id="storno-table-wrap"></div>
-
-      <div class="sdiv" style="margin-top:24px"><div class="sdiv-line"></div><div class="sdiv-label">Auszahlungsbelege kontrollieren</div><div class="sdiv-line"></div></div>
-      <div id="az-checks"></div>
-
-      <div class="step-nav">
-        <button class="btn-sec" onclick="goStep(3)">← Zurück</button>
-        <div class="spacer"></div>
-        <button class="btn-next" onclick="goStep(5)">Weiter: Abschluss →</button>
-      </div>
+    <div class="pg" id="pg4">
+      <div class="sey">Schritt 4 von 5</div>
+      <div class="sti">Stornos &amp; Auszahlungsbelege</div>
+      <div class="sde">Stornierungen kategorisieren, dann Auszahlungsbelege kontrollieren.</div>
+      <div class="sdiv"><div class="sdln"></div><div class="sdlb">Stornierungen</div><div class="sdln"></div></div>
+      <div id="stowrap"></div>
+      <div class="sdiv" style="margin-top:20px"><div class="sdln"></div><div class="sdlb">Auszahlungsbelege kontrollieren</div><div class="sdln"></div></div>
+      <div id="azwrap"></div>
+      <div class="snav"><button class="bs" id="b4b">← Zurück</button><div class="sp"></div><button class="bn" id="b4n">Weiter: Abschluss →</button></div>
     </div>
 
-    <!-- SCHRITT 5: Abschluss & Vorbereitung -->
-    <div class="page" id="page-5">
-      <div class="step-header">
-        <div class="step-eyebrow">Schritt 5 von 5</div>
-        <div class="step-title">Abschluss & nächste Woche</div>
-        <div class="step-desc">Zusammenfassung der Wochenarbeit und Checkliste zur Vorbereitung der nächsten Abrechnung.</div>
-      </div>
-
-      <div class="sdiv"><div class="sdiv-line"></div><div class="sdiv-label">Wochenzusammenfassung</div><div class="sdiv-line"></div></div>
-      <div id="woche-summary"></div>
-
-      <div class="sdiv" style="margin-top:22px"><div class="sdiv-line"></div><div class="sdiv-label">Vorbereitung nächste Abrechnung</div><div class="sdiv-line"></div></div>
-      <div class="checklist" id="vorb-checklist"></div>
-
-      <div class="step-nav">
-        <button class="btn-sec" onclick="goStep(4)">← Zurück</button>
-        <div class="spacer"></div>
-        <button class="btn-primary" onclick="resetWoche()">Neue Woche starten</button>
-      </div>
+    <div class="pg" id="pg5">
+      <div class="sey">Schritt 5 von 5</div>
+      <div class="sti">Abschluss &amp; nächste Woche</div>
+      <div class="sde">Wochenzusammenfassung und Vorbereitung der nächsten Abrechnung.</div>
+      <div class="sdiv"><div class="sdln"></div><div class="sdlb">Wochenzusammenfassung</div><div class="sdln"></div></div>
+      <div class="uc" id="wsumm" style="margin-bottom:20px"></div>
+      <div class="sdiv"><div class="sdln"></div><div class="sdlb">Vorbereitung nächste Abrechnung</div><div class="sdln"></div></div>
+      <div id="vorbcl"></div>
+      <div class="snav"><button class="bs" id="b5b">← Zurück</button><div class="sp"></div><button class="bp" id="b5r">Neue Woche starten</button></div>
     </div>
   </div>
 </div>
 
 <script>
-pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+(function(){
+  var PIN='1996';
+  var opos=[],stor=[],azTxt='';
+  var onotes={},odone={},sstat={},azck={},vck={};
+  var ofilt='alle';
+  var step=1;
 
-const PIN='1996';
-let currentStep=1;
-let oposData=[], stornoData=[], azText='';
-const oposNotes={}, oposDone={}, stornoStatus={}, azChecked={};
-let oposFilter='alle';
+  var KASSE={
+    '1700':'Techniker Krankenkasse','1706':'Pflegekasse der AOK Bayern',
+    '1711':'Privat','1721':'Privat','1724':'Landwirtschaftliche Pflegekasse',
+    '1725':'HEK – Hanseatische','1730':'Sozialversicherung',
+    '1740':'Pflegekasse / SVA','1792':'Privat'
+  };
+  var PRIV=['1711','1721','1792'];
 
-const KONTO_KASSE={
-  '1700':'Techniker Krankenkasse','1706':'Pflegekasse der AOK Bayern',
-  '1711':'Privat','1721':'Privat','1724':'Landwirtschaftliche Pflegekasse',
-  '1725':'HEK – Hanseatische','1730':'Sozialversicherung',
-  '1740':'Pflegekasse / SVA','1792':'Privat'
-};
-const PRIVAT_KONTEN=['1711','1721','1792'];
+  function fmt(n){return n.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' \u20ac'}
+  function el(id){return document.getElementById(id)}
+  function mb(m){var c=m==='2i'?'m2i':m==='2'?'m2':m==='1'?'m1':'m0';return'<span class="mb '+c+'">'+(m==='0'?'&mdash;':m)+'</span>'}
+  function kw(d){var j=new Date(d.getFullYear(),0,4);var s=new Date(j);s.setDate(j.getDate()-(j.getDay()||7)+1);return Math.ceil((d-s)/604800000)+1}
 
-function fmt(n){return n.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' €'}
-function mBadge(m){const c=m==='2i'?'m2i':m==='2'?'m2':m==='1'?'m1':'m0';return`<span class="mbadge ${c}">${m==='0'?'—':m}</span>`}
+  // LOGIN
+  el('lbtn').addEventListener('click',login);
+  el('pin').addEventListener('keydown',function(e){if(e.key==='Enter')login()});
+  el('tout').addEventListener('click',logout);
 
-function doLogin(){
-  const v=document.getElementById('pin').value.trim();
-  if(v===PIN){
-    document.getElementById('login').style.display='none';
-    document.getElementById('app').style.display='block';
-    const now=new Date();
-    const kw=getKW(now);
-    document.getElementById('tweek').textContent=`KW ${kw} · ${now.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'})}`;
+  function login(){
+    var v=el('pin').value.trim();
+    if(v===PIN){
+      el('login').style.display='none';
+      el('app').style.display='block';
+      el('lerr').textContent='';
+      var now=new Date();
+      el('tweek').textContent='KW '+kw(now)+' \u00b7 '+now.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});
+      buildStepper();
+      goStep(1);
+    } else {
+      el('lerr').textContent='PIN falsch.';
+      el('pin').value='';
+    }
+  }
+
+  function logout(){
+    el('app').style.display='none';
+    el('login').style.display='flex';
+    el('pin').value='';
+    el('lerr').textContent='';
+  }
+
+  // STEPPER
+  var STEPS=[{n:1,l:'Upload'},{n:2,l:'Übersicht'},{n:3,l:'Kassengespräche'},{n:4,l:'Storno & Belege'},{n:5,l:'Abschluss'}];
+
+  function buildStepper(){
+    var bar=el('stepbar');bar.innerHTML='';
+    STEPS.forEach(function(s){
+      var d=document.createElement('div');
+      d.className='stab'+(s.n===step?' active':'')+(s.n<step?' done':'');
+      d.innerHTML='<span class="snum">'+(s.n<step?'&#10003;':s.n)+'</span>'+s.l;
+      d.addEventListener('click',function(){if(s.n<=step+1)goStep(s.n)});
+      bar.appendChild(d);
+    });
+    el('pfill').style.width=(((step-1)/4)*100)+'%';
+  }
+
+  function goStep(n){
+    step=n;
+    document.querySelectorAll('.pg').forEach(function(p){p.classList.remove('active')});
+    el('pg'+n).classList.add('active');
     buildStepper();
-    goStep(1);
-  } else {
-    document.getElementById('lerr').textContent='PIN falsch.';
-    document.getElementById('pin').value='';
+    if(n===2)renderStep2();
+    if(n===3)renderOpos();
+    if(n===4)renderStep4();
+    if(n===5)renderStep5();
+    window.scrollTo(0,0);
   }
-}
-function doLogout(){
-  document.getElementById('app').style.display='none';
-  document.getElementById('login').style.display='flex';
-  document.getElementById('pin').value='';
-  document.getElementById('lerr').textContent='';
-}
-function getKW(d){const jan4=new Date(d.getFullYear(),0,4);const start=new Date(jan4);start.setDate(jan4.getDate()-(jan4.getDay()||7)+1);return Math.ceil((d-start)/604800000)+1}
 
-const STEPS=[
-  {n:1,label:'Upload'},
-  {n:2,label:'Übersicht'},
-  {n:3,label:'Kassengespräche'},
-  {n:4,label:'Storno & Belege'},
-  {n:5,label:'Abschluss'}
-];
+  el('btn1').addEventListener('click',function(){goStep(2)});
+  el('b2b').addEventListener('click',function(){goStep(1)});
+  el('b2n').addEventListener('click',function(){goStep(3)});
+  el('b3b').addEventListener('click',function(){goStep(2)});
+  el('b3n').addEventListener('click',function(){goStep(4)});
+  el('b4b').addEventListener('click',function(){goStep(3)});
+  el('b4n').addEventListener('click',function(){goStep(5)});
+  el('b5b').addEventListener('click',function(){goStep(4)});
+  el('b5r').addEventListener('click',resetWoche);
 
-function buildStepper(){
-  const bar=document.getElementById('stepper');
-  bar.innerHTML='';
-  STEPS.forEach(s=>{
-    const el=document.createElement('div');
-    el.className='step-tab'+(s.n===currentStep?' active':'')+(s.n<currentStep?' done':'');
-    el.id='stab-'+s.n;
-    el.onclick=()=>{if(s.n<=currentStep||s.n===currentStep+1)goStep(s.n)};
-    el.innerHTML=s.n<currentStep
-      ?`<span class="scheck">✓</span>${s.label}`
-      :`<span class="snum">${s.n}</span>${s.label}`;
-    bar.appendChild(el);
+  // UPLOAD
+  ['opos','storno','az'].forEach(function(t){
+    var dz=el('dz-'+t);
+    var fi=el('fi-'+t);
+    dz.addEventListener('click',function(){fi.click()});
+    dz.addEventListener('dragover',function(e){e.preventDefault();dz.style.borderColor='var(--gbd)';dz.style.background='var(--gbg)'});
+    dz.addEventListener('dragleave',function(){dz.style.borderColor='';dz.style.background=''});
+    dz.addEventListener('drop',function(e){
+      e.preventDefault();dz.style.borderColor='';dz.style.background='';
+      var f=e.dataTransfer.files[0];
+      if(f&&f.type==='application/pdf')handleFile(f,t);
+    });
+    fi.addEventListener('change',function(){if(fi.files[0])handleFile(fi.files[0],t)});
   });
-  const pct=((currentStep-1)/4)*100;
-  document.getElementById('progress').style.width=pct+'%';
-}
 
-function goStep(n){
-  currentStep=n;
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.getElementById('page-'+n).classList.add('active');
-  buildStepper();
-  if(n===2)renderStep2();
-  if(n===3)renderOpos();
-  if(n===4)renderStep4();
-  if(n===5)renderStep5();
-  window.scrollTo(0,0);
-}
+  // Filter pills
+  document.querySelectorAll('.fp').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      document.querySelectorAll('.fp').forEach(function(b){b.classList.remove('active')});
+      btn.classList.add('active');
+      ofilt=btn.getAttribute('data-f');
+      renderOpos();
+    });
+  });
+  el('osearch').addEventListener('input',renderOpos);
 
-// ── DRAG & DROP ──────────────────────────────────────────
-function dzOver(e,id){e.preventDefault();document.getElementById(id).classList.add('drag')}
-function dzLeave(id){document.getElementById(id).classList.remove('drag')}
-function dzDrop(e,type){
-  e.preventDefault();
-  const id='dz-'+type;
-  document.getElementById(id).classList.remove('drag');
-  const f=e.dataTransfer.files[0];
-  if(f&&f.type==='application/pdf')processPDF(f,type);
-}
-function loadPDF(inp,type){if(inp.files[0])processPDF(inp.files[0],type)}
-
-async function processPDF(file,type){
-  const stat=document.getElementById('us-'+type);
-  const lbl=document.getElementById('dl-'+type);
-  lbl.innerHTML='<span style="color:var(--teal)">Wird gelesen …</span>';
-  stat.className='ustat';stat.textContent='';
-  try{
-    const buf=await file.arrayBuffer();
-    const pdf=await pdfjsLib.getDocument({data:buf}).promise;
-    let text='';
-    for(let i=1;i<=pdf.numPages;i++){
-      const page=await pdf.getPage(i);
-      const c=await page.getTextContent();
-      text+=c.items.map(x=>x.str).join(' ')+'\n';
+  function handleFile(file,type){
+    var stat=el('us-'+type);
+    var lbl=el('dl-'+type);
+    lbl.innerHTML='<span style="color:var(--teal)">Wird gelesen \u2026</span>';
+    stat.className='ust';stat.textContent='';
+    if(typeof pdfjsLib==='undefined'){
+      lbl.innerHTML='<span style="color:var(--red)">PDF-Bibliothek nicht verfügbar</span>';
+      stat.className='ust err';stat.textContent='Bitte Internetverbindung prüfen.';
+      checkReady();return;
     }
-    if(type==='opos'){parseOpos(text);const n=oposData.length;stat.className='ustat ok';stat.textContent=n+' Posten erkannt';document.getElementById('dz-opos').classList.add('ok');}
-    else if(type==='storno'){parseStorno(text);stat.className='ustat ok';stat.textContent=stornoData.length+' Stornos erkannt';document.getElementById('dz-storno').classList.add('ok');}
-    else{azText=text;stat.className='ustat ok';stat.textContent='Belege eingelesen';document.getElementById('dz-az').classList.add('ok');}
-    lbl.innerHTML='<span style="color:var(--teal)">✓ '+file.name+'</span>';
-  }catch(e){
-    lbl.innerHTML='<span style="color:var(--red)">Fehler beim Lesen</span>';
-    stat.className='ustat err';stat.textContent='Datei konnte nicht gelesen werden.';
+    pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    file.arrayBuffer().then(function(buf){
+      return pdfjsLib.getDocument({data:buf}).promise;
+    }).then(function(pdf){
+      var pages=[];
+      for(var i=1;i<=pdf.numPages;i++)pages.push(i);
+      return pages.reduce(function(p,i){
+        return p.then(function(txt){
+          return pdf.getPage(i).then(function(pg){
+            return pg.getTextContent().then(function(c){
+              return txt+c.items.map(function(x){return x.str}).join(' ')+'\n';
+            });
+          });
+        });
+      },Promise.resolve(''));
+    }).then(function(text){
+      if(type==='opos'){parseOpos(text);stat.className='ust ok';stat.textContent=opos.length+' Posten erkannt';}
+      else if(type==='storno'){parseStor(text);stat.className='ust ok';stat.textContent=stor.length+' Stornos erkannt';}
+      else{azTxt=text;stat.className='ust ok';stat.textContent='Belege eingelesen';}
+      el('dz-'+type).classList.add('ok');
+      lbl.innerHTML='<span style="color:var(--teal)">\u2713 '+file.name+'</span>';
+      checkReady();
+    }).catch(function(e){
+      lbl.innerHTML='<span style="color:var(--red)">Fehler beim Lesen</span>';
+      stat.className='ust err';stat.textContent='Datei konnte nicht gelesen werden.';
+      checkReady();
+    });
   }
-  checkStep1Ready();
-}
 
-function checkStep1Ready(){
-  document.getElementById('btn-weiter-1').disabled=oposData.length===0;
-}
+  function checkReady(){el('btn1').disabled=opos.length===0}
 
-// ── OPOS PARSE ────────────────────────────────────────────
-function parseOpos(text){
-  oposData=[];
-  const kontoBlocks=text.split(/Konto:\s*(\d+)/);
-  for(let bi=1;bi<kontoBlocks.length;bi+=2){
-    const konto=kontoBlocks[bi].trim();
-    const block=kontoBlocks[bi+1]||'';
-    const kasse=KONTO_KASSE[konto]||'Konto '+konto;
-    const isPrivat=PRIVAT_KONTEN.includes(konto);
-    const entryRe=/1011\s+\d{5}([\s\S]*?)(?=1011\s+\d{5}|Zwischensumme|$)/g;
-    let m;
-    while((m=entryRe.exec(block))!==null){
-      const chunk=m[1];
-      const patM=chunk.match(/([A-ZÄÖÜa-zäöüß][^\n,]+),\s*([A-Za-z0-9]+),/);
-      if(!patM)continue;
-      const patient=patM[1].trim();
-      const versNr=patM[2].trim();
-      const zM=chunk.match(/(\d{2}\.\d{2}\.\d{4})-(\d{2}\.\d{2}\.\d{4})/);
-      const zeitraum=zM?zM[1]+'–'+zM[2]:'';
-      const dates=[],dr=/\d{2}\.\d{2}\.\d{4}/g;let dm;
-      while((dm=dr.exec(chunk))!==null)dates.push(dm[0]);
-      const amts=[],ar=/(\d{1,3}(?:\.\d{3})*,\d{2})\s*€/g;let am;
-      while((am=ar.exec(chunk))!==null)amts.push(parseFloat(am[1].replace(/\./g,'').replace(',','.')));
-      if(amts.length<2)continue;
-      const mM=chunk.match(/\b(2i|2|1)\b/);
-      const srM=chunk.match(/Sammelreferenz:\s*(A\S+)/);
-      oposData.push({konto,kasse,isPrivat,patient,versNr,zeitraum,
-        faktDatum:dates[0]||'',zahlZiel:dates[1]||'',
-        faktBetrag:amts[0],restBetrag:amts[1],
-        mahnstufe:mM?mM[1]:'0',sammelRef:srM?srM[1]:''});
+  // PARSE OPOS
+  function parseOpos(text){
+    opos=[];
+    var blocks=text.split(/Konto:\s*(\d+)/);
+    for(var bi=1;bi<blocks.length;bi+=2){
+      var konto=blocks[bi].trim();
+      var block=blocks[bi+1]||'';
+      var kasse=KASSE[konto]||'Konto '+konto;
+      var isPriv=PRIV.indexOf(konto)>=0;
+      var re=/1011\s+\d{5}([\s\S]*?)(?=1011\s+\d{5}|Zwischensumme|$)/g;
+      var m;
+      while((m=re.exec(block))!==null){
+        var chunk=m[1];
+        var pm=chunk.match(/([A-Z\u00c4\u00d6\u00dc][^\n,]+),\s*([A-Za-z0-9]+),/);
+        if(!pm)continue;
+        var zm=chunk.match(/(\d{2}\.\d{2}\.\d{4})-(\d{2}\.\d{2}\.\d{4})/);
+        var dates=[],dr=/\d{2}\.\d{2}\.\d{4}/g,dm;
+        while((dm=dr.exec(chunk))!==null)dates.push(dm[0]);
+        var amts=[],ar=/(\d{1,3}(?:\.\d{3})*,\d{2})\s*\u20ac/g,am;
+        while((am=ar.exec(chunk))!==null)amts.push(parseFloat(am[1].replace(/\./g,'').replace(',','.')));
+        if(amts.length<2)continue;
+        var mm=chunk.match(/\b(2i|2|1)\b/);
+        var srm=chunk.match(/Sammelreferenz:\s*(A\S+)/);
+        opos.push({konto:konto,kasse:kasse,isPriv:isPriv,
+          patient:pm[1].trim(),versNr:pm[2].trim(),
+          zeitraum:zm?zm[1]+'\u2013'+zm[2]:'',
+          faktDatum:dates[0]||'',zahlZiel:dates[1]||'',
+          fakt:amts[0],rest:amts[1],
+          mahn:mm?mm[1]:'0',ref:srm?srm[1]:''});
+      }
     }
   }
-}
 
-// ── STORNO PARSE ──────────────────────────────────────────
-function parseStorno(text){
-  stornoData=[];
-  const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
-  lines.forEach((line,i)=>{
-    if(!/(\d{1,3}(?:\.\d{3})*,\d{2})\s*€/.test(line))return;
-    if(!/\d{2}\.\d{2}\.\d{4}/.test(line))return;
-    const pM=line.match(/([A-ZÄÖÜa-zäöüß][a-zäöüßA-ZÄÖÜ\-\s]+),\s*([A-Za-z0-9]+)/);
-    if(!pM)return;
-    const amts=[],ar=/(\d{1,3}(?:\.\d{3})*,\d{2})\s*€/g;let am;
-    while((am=ar.exec(line))!==null)amts.push(parseFloat(am[1].replace(/\./g,'').replace(',','.')));
-    const dM=line.match(/\d{2}\.\d{2}\.\d{4}/);
-    stornoData.push({id:'st'+i,patient:pM[1].trim(),versNr:pM[2].trim(),
-      betrag:amts[0]||0,datum:dM?dM[0]:'',status:'check'});
-  });
-}
-
-// ── SCHRITT 2: ÜBERSICHT ──────────────────────────────────
-function renderStep2(){
-  const total=oposData.reduce((s,x)=>s+x.restBetrag,0);
-  const m2=oposData.filter(x=>x.mahnstufe==='2'||x.mahnstufe==='2i');
-  const m1=oposData.filter(x=>x.mahnstufe==='1');
-  const priv=oposData.filter(x=>x.isPrivat);
-  const dubQuote=priv.length&&oposData.length?((priv.reduce((s,x)=>s+x.restBetrag,0)/total)*100):0;
-
-  document.getElementById('metrics2').innerHTML=`
-    <div class="metric ${m2.length>0?'alert':''}">
-      <div class="mlabel">Mahnstufe 2</div>
-      <div class="mval">${m2.length}</div>
-    </div>
-    <div class="metric">
-      <div class="mlabel">Mahnstufe 1</div>
-      <div class="mval">${m1.length}</div>
-    </div>
-    <div class="metric ${dubQuote>5?'alert':''}">
-      <div class="mlabel">Dubiosen-Quote</div>
-      <div class="mval">${dubQuote.toFixed(1)}%</div>
-    </div>
-    <div class="metric">
-      <div class="mlabel">Restbetrag gesamt</div>
-      <div class="mval">${fmt(total)}</div>
-    </div>`;
-
-  const prio=[];
-  if(m2.length>0)prio.push({level:'red',title:`${m2.length} Posten auf Mahnstufe 2 — sofort klären`,hint:'Diese Forderungen sind überfällig. Bei weiterer Verzögerung droht Abschreibung. Im nächsten Schritt als Erstes abarbeiten.',icon:'!'});
-  if(dubQuote>5)prio.push({level:'red',title:`Dubiosen-Quote ${dubQuote.toFixed(1)}% — Ziel max. 3–5%`,hint:'Privatanteile müssen durch HOMECARE direkt kontaktiert werden — AS Bremen hat keinen Zugriff auf diese Daten.',icon:'!'});
-  if(stornoData.length>0)prio.push({level:'amber',title:`${stornoData.length} Stornierungen zu bearbeiten`,hint:'In Schritt 4 kategorisieren: Act / Check / Privat / Call / Solve & Submit / Wait. Liste bis zum 15. des Monats an AS Bremen senden.',icon:'~'});
-  if(azText)prio.push({level:'teal',title:'Auszahlungsbelege zur Kontrolle vorhanden',hint:'Prüfen ob Stornos gutgeschrieben wurden, Rückbelastungen und Lastschriften korrekt sind.',icon:'i'});
-  const groups=groupByKasse(oposData);
-  const topKasse=groups[0];
-  if(topKasse)prio.push({level:'teal',title:`${topKasse.kasse}: ${fmt(topKasse.posten.reduce((s,x)=>s+x.restBetrag,0))} offen (${topKasse.posten.length} Posten)`,hint:'Größte Einzelkasse — mit diesem Anruf die meiste offene Forderung klären.',icon:'i'});
-
-  const prioEl=document.getElementById('prio-liste');
-  if(!prio.length){prioEl.innerHTML='<div class="infobox teal">Kein dringender Handlungsbedarf erkannt.</div>';return;}
-  prioEl.innerHTML=prio.map(p=>`
-    <div class="azcard" style="border-left:3px solid ${p.level==='red'?'var(--red)':p.level==='amber'?'var(--amber-bd)':'var(--teal-bd)'};border-radius:0 var(--r) var(--r) 0;margin-bottom:8px">
-      <div style="display:flex;gap:10px;align-items:flex-start">
-        <div style="width:22px;height:22px;border-radius:50%;background:${p.level==='red'?'var(--red-bg)':p.level==='amber'?'var(--amber-bg)':'var(--teal-bg)'};color:${p.level==='red'?'var(--red)':p.level==='amber'?'var(--amber)':'var(--teal)'};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:1px">${p.icon}</div>
-        <div>
-          <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px">${p.title}</div>
-          <div style="font-size:12px;color:var(--t2);line-height:1.5">${p.hint}</div>
-        </div>
-      </div>
-    </div>`).join('');
-}
-
-// ── SCHRITT 3: OPOS ───────────────────────────────────────
-function groupByKasse(data){
-  const map={};
-  data.forEach(p=>{
-    const k=p.kasse+'|'+p.konto;
-    if(!map[k])map[k]={kasse:p.kasse,konto:p.konto,isPrivat:p.isPrivat,posten:[]};
-    map[k].posten.push(p);
-  });
-  const arr=Object.values(map);
-  arr.sort((a,b)=>b.posten.reduce((s,x)=>s+x.restBetrag,0)-a.posten.reduce((s,x)=>s+x.restBetrag,0));
-  arr.forEach(g=>g.posten.sort((a,b)=>b.restBetrag-a.restBetrag));
-  return arr;
-}
-
-function setF(f,btn){
-  oposFilter=f;
-  document.querySelectorAll('.fpill').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  renderOpos();
-}
-
-function renderOpos(){
-  if(!oposData.length){
-    document.getElementById('opos-list').innerHTML='<div class="empty"><strong>Keine OPOS-Daten</strong>Bitte in Schritt 1 die OPOS-PDF hochladen.</div>';
-    return;
+  // PARSE STORNO
+  function parseStor(text){
+    stor=[];
+    var lines=text.split('\n').map(function(l){return l.trim()}).filter(Boolean);
+    lines.forEach(function(line,i){
+      if(!/(\d{1,3}(?:\.\d{3})*,\d{2})\s*\u20ac/.test(line))return;
+      if(!/\d{2}\.\d{2}\.\d{4}/.test(line))return;
+      var pm=line.match(/([A-Z\u00c4\u00d6\u00dc][a-z\u00e4\u00f6\u00fc\u00dfA-Z\u00c4\u00d6\u00dc\-\s]+),\s*([A-Za-z0-9]+)/);
+      if(!pm)return;
+      var amts=[],ar=/(\d{1,3}(?:\.\d{3})*,\d{2})\s*\u20ac/g,am;
+      while((am=ar.exec(line))!==null)amts.push(parseFloat(am[1].replace(/\./g,'').replace(',','.')));
+      var dm=line.match(/\d{2}\.\d{2}\.\d{4}/);
+      stor.push({id:'s'+i,patient:pm[1].trim(),versNr:pm[2].trim(),betrag:amts[0]||0,datum:dm?dm[0]:'',status:'check'});
+    });
   }
-  const q=(document.getElementById('opos-search')||{}).value?.toLowerCase()||'';
-  let data=oposData;
-  if(oposFilter==='m2')data=data.filter(x=>x.mahnstufe==='2'||x.mahnstufe==='2i');
-  if(oposFilter==='m1')data=data.filter(x=>x.mahnstufe==='1');
-  if(oposFilter==='privat')data=data.filter(x=>x.isPrivat);
-  if(oposFilter==='offen')data=data.filter(x=>!oposDone['done_'+x.konto+x.versNr]);
-  if(q)data=data.filter(x=>x.kasse.toLowerCase().includes(q)||x.patient.toLowerCase().includes(q)||x.versNr.toLowerCase().includes(q));
 
-  const groups=groupByKasse(data);
-  const total=data.reduce((s,x)=>s+x.restBetrag,0);
-  const done=groups.filter(g=>oposDone['done_'+g.konto]).length;
+  // STEP 2
+  function renderStep2(){
+    var total=opos.reduce(function(s,x){return s+x.rest},0);
+    var m2=opos.filter(function(x){return x.mahn==='2'||x.mahn==='2i'});
+    var m1=opos.filter(function(x){return x.mahn==='1'});
+    var priv=opos.filter(function(x){return x.isPriv});
+    var dq=total>0?((priv.reduce(function(s,x){return s+x.rest},0)/total)*100):0;
+    el('mets2').innerHTML=
+      '<div class="met'+(m2.length>0?' al':'')+'"><div class="ml">Mahnstufe 2</div><div class="mv">'+m2.length+'</div></div>'+
+      '<div class="met"><div class="ml">Mahnstufe 1</div><div class="mv">'+m1.length+'</div></div>'+
+      '<div class="met'+(dq>5?' al':'')+'"><div class="ml">Dubiosen-Quote</div><div class="mv">'+dq.toFixed(1)+'%</div></div>'+
+      '<div class="met"><div class="ml">Restbetrag gesamt</div><div class="mv">'+fmt(total)+'</div></div>';
+    var items=[];
+    if(m2.length>0)items.push({lv:'red',ic:'!',ti:m2.length+' Posten auf Mahnstufe 2 — sofort klären',hi:'Diese Forderungen sind überfällig. Im nächsten Schritt als Erstes abarbeiten.'});
+    if(dq>5)items.push({lv:'red',ic:'!',ti:'Dubiosen-Quote '+dq.toFixed(1)+'% — Ziel max. 3–5%',hi:'Privatanteile müssen durch HOMECARE direkt kontaktiert werden — AS Bremen hat keinen Zugriff.'});
+    if(stor.length>0)items.push({lv:'amb',ic:'~',ti:stor.length+' Stornierungen zu bearbeiten',hi:'In Schritt 4 kategorisieren: Act / Check / Privat / Call / Solve & Submit / Wait. Bis 15. des Monats an AS Bremen.'});
+    if(azTxt)items.push({lv:'teal',ic:'i',ti:'Auszahlungsbelege zur Kontrolle vorhanden',hi:'Prüfen: Stornos gutgeschrieben? Rückbelastungen? Lastschriften korrekt?'});
+    var gs=groupKasse(opos);
+    if(gs.length)items.push({lv:'teal',ic:'i',ti:gs[0].kasse+': '+fmt(gs[0].posten.reduce(function(s,x){return s+x.rest},0))+' offen ('+gs[0].posten.length+' Posten)',hi:'Größte Einzelkasse — mit einem Anruf die meiste offene Forderung klären.'});
+    var pl=el('prioli');
+    pl.innerHTML=items.length?items.map(function(p){
+      return'<div class="pitem '+p.lv+'"><div class="picon '+p.lv+'">'+p.ic+'</div><div><div class="pti">'+p.ti+'</div><div class="phi">'+p.hi+'</div></div></div>';
+    }).join(''):'<div class="ib teal">Kein dringender Handlungsbedarf erkannt.</div>';
+  }
 
-  document.getElementById('opos-hint').textContent=
-    `${groups.length} Kassen · ${data.length} Posten · ${fmt(total)} offen · ${done} von ${groupByKasse(oposData).length} Anrufe erledigt`;
+  // STEP 3
+  function groupKasse(data){
+    var map={};
+    data.forEach(function(p){
+      var k=p.kasse+'|'+p.konto;
+      if(!map[k])map[k]={kasse:p.kasse,konto:p.konto,isPriv:p.isPriv,posten:[]};
+      map[k].posten.push(p);
+    });
+    var arr=Object.values(map);
+    arr.sort(function(a,b){return b.posten.reduce(function(s,x){return s+x.rest},0)-a.posten.reduce(function(s,x){return s+x.rest},0)});
+    arr.forEach(function(g){g.posten.sort(function(a,b){return b.rest-a.rest})});
+    return arr;
+  }
 
-  const list=document.getElementById('opos-list');
-  list.innerHTML='';
-  groups.forEach((g,gi)=>{
-    const gid='g'+gi+g.konto;
-    const sumRest=g.posten.reduce((s,x)=>s+x.restBetrag,0);
-    const sumFakt=g.posten.reduce((s,x)=>s+x.faktBetrag,0);
-    const maxM=g.posten.some(x=>x.mahnstufe==='2'||x.mahnstufe==='2i')?'2':g.posten.some(x=>x.mahnstufe==='1')?'1':'0';
-    const isDone=oposDone['done_'+g.konto];
-    const pats=[...new Set(g.posten.map(p=>p.patient))];
-    const refs=[...new Set(g.posten.map(p=>p.sammelRef).filter(Boolean))];
+  function renderOpos(){
+    if(!opos.length){el('olist').innerHTML='<div class="emp"><strong>Keine OPOS-Daten</strong>Bitte in Schritt 1 die OPOS-PDF hochladen.</div>';return}
+    var q=(el('osearch').value||'').toLowerCase();
+    var data=opos.slice();
+    if(ofilt==='m2')data=data.filter(function(x){return x.mahn==='2'||x.mahn==='2i'});
+    if(ofilt==='m1')data=data.filter(function(x){return x.mahn==='1'});
+    if(ofilt==='privat')data=data.filter(function(x){return x.isPriv});
+    if(ofilt==='offen')data=data.filter(function(x){return!odone['d_'+x.konto]});
+    if(q)data=data.filter(function(x){return x.kasse.toLowerCase().indexOf(q)>=0||x.patient.toLowerCase().indexOf(q)>=0||x.versNr.toLowerCase().indexOf(q)>=0});
+    var groups=groupKasse(data);
+    var allG=groupKasse(opos);
+    var total=data.reduce(function(s,x){return s+x.rest},0);
+    var doneC=allG.filter(function(g){return odone['d_'+g.konto]}).length;
+    el('ohint').textContent=groups.length+' Kassen \u00b7 '+data.length+' Posten \u00b7 '+fmt(total)+' offen \u00b7 '+doneC+' von '+allG.length+' Anrufe erledigt';
+    var list=el('olist');list.innerHTML='';
+    groups.forEach(function(g,gi){
+      var gid='g'+gi+g.konto;
+      var sr=g.posten.reduce(function(s,x){return s+x.rest},0);
+      var sf=g.posten.reduce(function(s,x){return s+x.fakt},0);
+      var maxM=g.posten.some(function(x){return x.mahn==='2'||x.mahn==='2i'})?'2':g.posten.some(function(x){return x.mahn==='1'})?'1':'0';
+      var isDone=!!odone['d_'+g.konto];
+      var pats=[...new Set(g.posten.map(function(p){return p.patient}))];
+      var refs=[...new Set(g.posten.map(function(p){return p.ref}).filter(Boolean))];
+      var banner=g.isPriv
+        ?'<div class="ab p"><strong>Hinweis Privat:</strong> Direktkontakt notwendig \u2014 Kasse hat keinen Zugriff.<br>'+g.posten.length+' Rechnung'+(g.posten.length>1?'en':'')+' \u00b7 Gesamt: <strong>'+fmt(sr)+'</strong></div>'
+        :'<div class="ab k"><strong>Gesprächsvorbereitung:</strong> '+pats.length+' Patient'+(pats.length>1?'en':'')+' \u2014 '+pats.join(', ')+'<br>Offener Gesamtbetrag: <strong>'+fmt(sr)+'</strong>'+(refs.length?' \u00b7 Sammelreferenzen: '+refs.join(', '):'')+'</div>';
+      var rows=g.posten.map(function(p){
+        return'<tr><td style="font-weight:500">'+p.patient+'</td><td style="color:var(--t2);font-size:11px">'+p.versNr+'</td><td style="color:var(--t2);font-size:11px">'+p.zeitraum+'</td><td class="tr">'+fmt(p.fakt)+'</td><td class="tr '+(p.rest>500?'hi':'lo')+'">'+fmt(p.rest)+'</td><td style="text-align:center">'+mb(p.mahn)+'</td><td style="font-size:11px;color:var(--t2)">'+p.zahlZiel+'</td></tr>';
+      }).join('');
+      var card=document.createElement('div');
+      card.className='kc'+(isDone?' done':'');
+      card.innerHTML=
+        '<div class="kh" id="kh_'+gid+'">'+
+          '<div class="kn">'+g.kasse+'<span class="kkto">Kto. '+g.konto+'</span>'+(isDone?' <span class="bg bg-d">Erledigt</span>':'')+'</div>'+
+          '<div class="bgs"><span class="bg bg-n">'+g.posten.length+' Posten</span><span class="bg bg-s">'+fmt(sr)+'</span>'+(maxM==='2'?'<span class="bg bg-m2">M2</span>':'')+(maxM==='1'?'<span class="bg bg-m1">M1</span>':'')+(g.isPriv?'<span class="bg bg-p">Privat</span>':'')+'</div>'+
+          '<span class="chv" id="chv_'+gid+'">&#9660;</span>'+
+        '</div>'+
+        '<div class="kb" id="kb_'+gid+'">'+
+          banner+
+          '<div style="overflow-x:auto"><table class="ptbl"><thead><tr><th>Patient</th><th>Vers.-Nr.</th><th>Zeitraum</th><th style="text-align:right">Fakt.-Betrag</th><th style="text-align:right">Restbetrag</th><th style="text-align:center">M</th><th>Zahlungsziel</th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr class="tfoot"><td colspan="3">Summe</td><td class="tr">'+fmt(sf)+'</td><td class="tr">'+fmt(sr)+'</td><td colspan="2"></td></tr></tfoot></table></div>'+
+          '<div class="nr"><span class="nl">Gesprächsnotiz</span><textarea class="nta" id="nt_'+gid+'" placeholder="Datum, Ansprechpartner, Ergebnis \u2026">'+( onotes[gid]||'')+'</textarea></div>'+
+          '<div class="kf"><button class="db '+(isDone?'done':'')+'" id="db_'+gid+'">'+(isDone?'Erledigt \u2713':'Als erledigt markieren')+'</button></div>'+
+        '</div>';
+      list.appendChild(card);
+      (function(g2,gid2){
+        el('kh_'+gid2).addEventListener('click',function(){
+          var kb=el('kb_'+gid2);var chv=el('chv_'+gid2);
+          kb.classList.toggle('op');chv.classList.toggle('op',kb.classList.contains('op'));
+        });
+        el('nt_'+gid2).addEventListener('input',function(){onotes[gid2]=this.value});
+        el('db_'+gid2).addEventListener('click',function(){
+          odone['d_'+g2.konto]=!odone['d_'+g2.konto];renderOpos();
+        });
+      })(g,gid);
+    });
+  }
 
-    const banner=g.isPrivat
-      ?`<div class="anruf-banner ab-priv"><strong>Hinweis Privat:</strong> Direktkontakt notwendig — Kasse hat keinen Zugriff.<br>${g.posten.length} Rechnung${g.posten.length>1?'en':''} · Gesamt: <strong>${fmt(sumRest)}</strong></div>`
-      :`<div class="anruf-banner ab-kasse"><strong>Gesprächsvorbereitung:</strong> ${pats.length} Patient${pats.length>1?'en':''} — ${pats.join(', ')}<br>Offener Gesamtbetrag: <strong>${fmt(sumRest)}</strong>${refs.length?' · Sammelreferenzen: '+refs.join(', ')':''}</div>`;
+  // STEP 4
+  var SLABS=['check','act','call','privat','wait','solve'];
+  var SLBL={check:'Prüfen',act:'Act',call:'Call',privat:'Privat',wait:'Wait',solve:'Gelöst'};
 
-    const rows=g.posten.map(p=>`<tr>
-      <td style="font-weight:500">${p.patient}</td>
-      <td style="color:var(--t2);font-size:11px">${p.versNr}</td>
-      <td style="color:var(--t2);font-size:11px">${p.zeitraum}</td>
-      <td class="tr">${fmt(p.faktBetrag)}</td>
-      <td class="tr ${p.restBetrag>500?'th-red':'th-teal'}">${fmt(p.restBetrag)}</td>
-      <td style="text-align:center">${mBadge(p.mahnstufe)}</td>
-      <td style="font-size:11px;color:var(--t2)">${p.zahlZiel}</td>
-    </tr>`).join('');
+  function renderStep4(){
+    var sw=el('stowrap');
+    if(!stor.length){
+      sw.innerHTML='<div class="ib gold">Keine Storno-PDF hochgeladen — dieser Schritt kann übersprungen werden.</div>';
+    } else {
+      var rows=stor.map(function(s){
+        var stat=sstat[s.id]||'check';
+        return'<tr><td style="font-weight:500">'+s.patient+'<br><span style="font-size:11px;color:var(--t3)">'+s.versNr+'</span></td><td style="font-variant-numeric:tabular-nums">'+fmt(s.betrag)+'</td><td style="font-size:12px;color:var(--t2)">'+s.datum+'</td><td><select class="ssel" data-id="'+s.id+'">'+SLABS.map(function(v){return'<option value="'+v+'"'+(stat===v?' selected':'')+'>'+SLBL[v]+'</option>'}).join('')+'</select></td></tr>';
+      }).join('');
+      sw.innerHTML='<div style="overflow-x:auto;border:1px solid var(--bd);border-radius:var(--r);overflow:hidden"><table class="stbl"><thead><tr><th>Patient</th><th>Betrag</th><th>Datum</th><th>Status</th></tr></thead><tbody>'+rows+'</tbody></table></div><div class="ib gold" style="margin-top:12px"><strong>Farbschema:</strong> Act = sofort handeln \u00b7 Call = Kasse anrufen \u00b7 Privat = Direktkontakt \u00b7 Wait = abwarten \u00b7 Prüfen = unklar \u00b7 Gelöst = erledigt.<br>Liste bis zum <strong>15. des Monats</strong> an AS Bremen senden.</div>';
+      sw.querySelectorAll('.ssel').forEach(function(sel){
+        sel.addEventListener('change',function(){sstat[sel.getAttribute('data-id')]=sel.value});
+      });
+    }
+    var AZ=['Stornos gutgeschrieben?','Rückbelastungen vorhanden und geprüft?','Lastschriften korrekt?','Auszahlungsbetrag mit Erwartungswert abgeglichen?','Abweichungen dokumentiert und gemeldet?'];
+    el('azwrap').innerHTML=
+      (!azTxt?'<div class="ib gold">Keine Auszahlungsbelege hochgeladen \u2014 Checkliste trotzdem nutzbar.</div>':'')+
+      AZ.map(function(lbl,i){
+        var ck=!!azck['az'+i];
+        return'<div class="azit'+(ck?' ck':'')+'" id="azit'+i+'"><div class="azbox">'+(ck?'&#10003;':'')+'</div><span class="azl">'+lbl+'</span></div>';
+      }).join('');
+    AZ.forEach(function(_,i){
+      el('azit'+i).addEventListener('click',function(){
+        azck['az'+i]=!azck['az'+i];renderStep4();
+      });
+    });
+  }
 
-    const card=document.createElement('div');
-    card.className='kasse-card'+(isDone?' is-done':'');
-    card.innerHTML=`
-      <div class="khead" onclick="toggleK('${gid}')">
-        <div class="kname">${g.kasse}<span class="kkto">Kto. ${g.konto}</span>${isDone?' <span class="badge b-done">Erledigt</span>':''}</div>
-        <div class="badges">
-          <span class="badge b-n">${g.posten.length} Posten</span>
-          <span class="badge b-sum">${fmt(sumRest)}</span>
-          ${maxM==='2'?'<span class="badge b-m2">M2</span>':''}
-          ${maxM==='1'?'<span class="badge b-m1">M1</span>':''}
-          ${g.isPrivat?'<span class="badge b-priv">Privat</span>':''}
-        </div>
-        <span class="chev" id="chev-${gid}">▼</span>
-      </div>
-      <div class="kbody" id="body-${gid}">
-        ${banner}
-        <div style="overflow-x:auto">
-          <table class="ptbl">
-            <thead><tr>
-              <th>Patient</th><th>Vers.-Nr.</th><th>Zeitraum</th>
-              <th style="text-align:right">Fakt.-Betrag</th>
-              <th style="text-align:right">Restbetrag</th>
-              <th style="text-align:center">M</th><th>Zahlungsziel</th>
-            </tr></thead>
-            <tbody>${rows}</tbody>
-            <tfoot><tr class="tfoot-row">
-              <td colspan="3">Summe</td>
-              <td class="tr">${fmt(sumFakt)}</td>
-              <td class="tr">${fmt(sumRest)}</td>
-              <td colspan="2"></td>
-            </tr></tfoot>
-          </table>
-        </div>
-        <div class="notiz-row">
-          <span class="notiz-lbl">Gesprächsnotiz</span>
-          <textarea class="notiz-ta" placeholder="Datum, Ansprechpartner, Ergebnis, Zusagen …"
-            oninput="oposNotes['${gid}']=this.value">${oposNotes[gid]||''}</textarea>
-        </div>
-        <div class="kfooter">
-          <button class="done-btn ${isDone?'done':''}" onclick="markDone('${g.konto}','${gid}',this)">
-            ${isDone?'Erledigt ✓':'Als erledigt markieren'}
-          </button>
-        </div>
-      </div>`;
-    list.appendChild(card);
-  });
-}
+  // STEP 5
+  var VORB=[
+    {id:'v0',ti:'Budgets kontrollieren',hi:'Stornos gutgeschrieben? Rückbelastungen? Lastschriften? Monat durchklicken.',pfl:true},
+    {id:'v1',ti:'Anträge & Bewilligungen vorbereiten (Neukunden)',hi:'§36 Kombileistung, §39 Verhinderungspflege, §45b Abtretungserklärung. Fax-Nachweis in Akte und in heimbas dokumentieren.',pfl:true},
+    {id:'v2',ti:'QS-Termine (Höherstufung) vorbereiten',hi:'Telefonisch klären. Servicemitarbeiter rechtzeitig einbeziehen.',pfl:false},
+    {id:'v3',ti:'Privatanteile frühzeitig kommunizieren',hi:'Servicemitarbeiter informieren — Versicherte müssen früh genug bescheid wissen.',pfl:true},
+    {id:'v4',ti:'Eintrittsstatistik aktualisieren',hi:'Auch ersichtlich via Dokumente / Kunden-digitalisiert / AAA Neukunden.',pfl:false},
+    {id:'v5',ti:'Kunden-digitalisiert: Upload & Benennung',hi:'Wöchentlicher Turnus. Dateien nach Namensschema benennen und in Unterordner einordnen.',pfl:false},
+    {id:'v6',ti:'DTA- und Factoring-Daten vorbereiten',hi:'Separate Mails an AS Bremen: 1× DTA-Daten + Protokoll, 1× Factoring-Daten + Protokoll.',pfl:true},
+  ];
 
-function toggleK(gid){
-  const b=document.getElementById('body-'+gid);
-  const c=document.getElementById('chev-'+gid);
-  b.classList.toggle('open');
-  c.classList.toggle('open',b.classList.contains('open'));
-}
-
-function markDone(konto,gid,btn){
-  oposDone['done_'+konto]=!oposDone['done_'+konto];
-  renderOpos();
-}
-
-// ── SCHRITT 4: STORNO & AUSZAHLUNG ───────────────────────
-const STORNO_STATUSES=['check','act','call','privat','wait','solve'];
-const STORNO_LABELS={check:'Prüfen',act:'Act',call:'Call',privat:'Privat',wait:'Wait',solve:'Gelöst'};
-
-function renderStep4(){
-  const wrap=document.getElementById('storno-table-wrap');
-  if(!stornoData.length){
-    wrap.innerHTML='<div class="infobox gold">Keine Storno-PDF hochgeladen — dieser Schritt kann übersprungen werden.</div>';
-  } else {
-    let rows=stornoData.map((s,i)=>{
-      const stat=stornoStatus[s.id]||'check';
-      return`<tr>
-        <td style="font-weight:500">${s.patient}<br><span style="font-size:11px;color:var(--t3)">${s.versNr}</span></td>
-        <td style="font-variant-numeric:tabular-nums">${fmt(s.betrag)}</td>
-        <td style="font-size:12px;color:var(--t2)">${s.datum}</td>
-        <td>
-          <select class="status-sel" onchange="stornoStatus['${s.id}']=this.value">
-            ${STORNO_STATUSES.map(sv=>`<option value="${sv}"${stat===sv?' selected':''}>${STORNO_LABELS[sv]}</option>`).join('')}
-          </select>
-        </td>
-      </tr>`;
+  function renderStep5(){
+    var gs=groupKasse(opos);
+    var allG=groupKasse(opos);
+    var doneC=allG.filter(function(g){return odone['d_'+g.konto]}).length;
+    var total=opos.reduce(function(s,x){return s+x.rest},0);
+    var m2=opos.filter(function(x){return x.mahn==='2'||x.mahn==='2i'}).length;
+    var sGel=Object.values(sstat).filter(function(v){return v==='solve'}).length;
+    var azD=Object.keys(azck).filter(function(k){return k.indexOf('az')===0&&azck[k]}).length;
+    el('wsumm').innerHTML=
+      '<div class="srow"><span class="slb">Kassengespräche erledigt</span><span class="svl '+(doneC===allG.length?'ok':'wa')+'">'+doneC+' / '+allG.length+'</span></div>'+
+      '<div class="srow"><span class="slb">Verbleibende offene Forderungen</span><span class="svl">'+fmt(total)+'</span></div>'+
+      '<div class="srow"><span class="slb">Posten Mahnstufe 2 (noch offen)</span><span class="svl '+(m2>0?'re':'ok')+'">'+m2+'</span></div>'+
+      '<div class="srow"><span class="slb">Stornos bearbeitet</span><span class="svl">'+sGel+' / '+stor.length+' gelöst</span></div>'+
+      '<div class="srow"><span class="slb">Auszahlungsbelege geprüft</span><span class="svl '+(azD===5?'ok':'wa')+'">'+azD+' / 5 Punkte</span></div>';
+    el('vorbcl').innerHTML=VORB.map(function(v){
+      var ck=!!vck[v.id];
+      return'<div class="cli'+(ck?' ck':'')+'" id="vcl_'+v.id+'"><div class="clbox">'+(ck?'&#10003;':'')+'</div><div><div class="cit">'+v.ti+'<span class="cbadge '+(v.pfl?'cpfl':'copt')+'">'+(v.pfl?'Pflicht':'Optional')+'</span></div><div class="cih">'+v.hi+'</div></div></div>';
     }).join('');
-    wrap.innerHTML=`<div style="overflow-x:auto"><table class="stbl">
-      <thead><tr>
-        <th>Patient</th><th>Betrag</th><th>Datum</th><th>Status</th>
-      </tr></thead>
-      <tbody>${rows}</tbody>
-    </table></div>
-    <div class="infobox gold" style="margin-top:12px">
-      <strong>Farbschema:</strong> Act = sofort handeln · Call = Kasse anrufen · Privat = Direktkontakt · Wait = abwarten · Prüfen = unklar · Gelöst = erledigt.<br>
-      Liste bis zum <strong>15. des Monats</strong> an AS Bremen senden.
-    </div>`;
+    VORB.forEach(function(v){
+      el('vcl_'+v.id).addEventListener('click',function(){vck[v.id]=!vck[v.id];renderStep5()});
+    });
   }
 
-  const azWrap=document.getElementById('az-checks');
-  const AZ_ITEMS=[
-    {id:'az1',label:'Stornos gutgeschrieben?',warn:false},
-    {id:'az2',label:'Rückbelastungen vorhanden und geprüft?',warn:false},
-    {id:'az3',label:'Lastschriften korrekt?',warn:false},
-    {id:'az4',label:'Auszahlungsbetrag mit Erwartungswert abgeglichen?',warn:false},
-    {id:'az5',label:'Abweichungen dokumentiert und an Standortleiter gemeldet?',warn:false},
-  ];
-  azWrap.innerHTML=`
-    ${!azText?'<div class="infobox gold">Keine Auszahlungsbelege hochgeladen — Checkliste trotzdem nutzbar.</div>':''}
-    <div class="azcard">
-      <div class="azcheck">
-        ${AZ_ITEMS.map(item=>`
-          <div class="azitem ${azChecked[item.id]?'checked':''}" onclick="toggleAz('${item.id}',this)">
-            <div class="azchk">${azChecked[item.id]?'✓':''}</div>
-            <span class="azlabel">${item.label}</span>
-          </div>`).join('')}
-      </div>
-    </div>`;
-}
+  function resetWoche(){
+    opos=[];stor=[];azTxt='';
+    [onotes,odone,sstat,azck,vck].forEach(function(o){Object.keys(o).forEach(function(k){delete o[k]})});
+    ['opos','storno','az'].forEach(function(t){
+      el('dz-'+t).classList.remove('ok');
+      el('dl-'+t).innerHTML='<strong>PDF auswählen</strong><br>oder hierher ziehen';
+      el('us-'+t).textContent='';
+      el('fi-'+t).value='';
+    });
+    goStep(1);
+  }
 
-function toggleAz(id,el){
-  azChecked[id]=!azChecked[id];
-  el.classList.toggle('checked',azChecked[id]);
-  el.querySelector('.azchk').textContent=azChecked[id]?'✓':'';
-  el.querySelector('.azlabel').style.color=azChecked[id]?'var(--teal)':'var(--t2)';
-}
-
-// ── SCHRITT 5: ABSCHLUSS ──────────────────────────────────
-function renderStep5(){
-  const groups=groupByKasse(oposData);
-  const doneCount=groups.filter(g=>oposDone['done_'+g.konto]).length;
-  const total=oposData.reduce((s,x)=>s+x.restBetrag,0);
-  const m2=oposData.filter(x=>x.mahnstufe==='2'||x.mahnstufe==='2i').length;
-  const stornoGel=Object.values(stornoStatus).filter(v=>v==='solve').length;
-  const azDone=Object.values(azChecked).filter(Boolean).length;
-  const azTotal=5;
-
-  document.getElementById('woche-summary').innerHTML=`
-    <div class="summary-card">
-      <div class="summary-row">
-        <span class="summary-label">Kassengespräche erledigt</span>
-        <span class="summary-val ${doneCount===groups.length?'ok':'warn'}">${doneCount} / ${groups.length}</span>
-      </div>
-      <div class="summary-row">
-        <span class="summary-label">Verbleibende offene Forderungen</span>
-        <span class="summary-val">${fmt(total)}</span>
-      </div>
-      <div class="summary-row">
-        <span class="summary-label">Posten Mahnstufe 2 (noch offen)</span>
-        <span class="summary-val ${m2>0?'red':'ok'}">${m2}</span>
-      </div>
-      <div class="summary-row">
-        <span class="summary-label">Stornos bearbeitet</span>
-        <span class="summary-val">${stornoGel} / ${stornoData.length} gelöst</span>
-      </div>
-      <div class="summary-row">
-        <span class="summary-label">Auszahlungsbelege geprüft</span>
-        <span class="summary-val ${azDone===azTotal?'ok':'warn'}">${azDone} / ${azTotal} Punkte</span>
-      </div>
-    </div>`;
-
-  const VORB=[
-    {id:'v1',title:'Budgets kontrollieren',hint:'Stornos gutgeschrieben? Rückbelastungen? Lastschriften? Monat durchklicken.',pflicht:true},
-    {id:'v2',title:'Anträge & Bewilligungen vorbereiten (Neukunden)',hint:'§36 Kombileistung, §39 Verhinderungspflege, §45b Abtretungserklärung. Fax-Nachweis in Akte heften und in heimbas dokumentieren.',pflicht:true},
-    {id:'v3',title:'QS-Termine (Höherstufung) vorbereiten',hint:'Telefonisch klären. Servicemitarbeiter rechtzeitig einbeziehen.',pflicht:false},
-    {id:'v4',title:'Privatanteile frühzeitig kommunizieren',hint:'Servicemitarbeiter informieren — Versicherte müssen früh genug bescheid wissen.',pflicht:true},
-    {id:'v5',title:'Eintrittsstatistik aktualisieren',hint:'Auch ersichtlich via Dokumente/Kunden-digitalisiert/AAA Neukunden.',pflicht:false},
-    {id:'v6',title:'Kunden-digitalisiert: Upload & Benennung',hint:'Wöchentlicher Turnus. Dateien nach Namensschema benennen und in Unterordner einordnen.',pflicht:false},
-    {id:'v7',title:'DTA- und Factoring-Daten vorbereiten',hint:'Separate Mails an AS Bremen: 1× DTA-Daten + Protokoll, 1× Factoring-Daten + Protokoll.',pflicht:true},
-  ];
-
-  const cl=document.getElementById('vorb-checklist');
-  cl.innerHTML=VORB.map(v=>`
-    <div class="check-item ${azChecked['vorb_'+v.id]?'checked':''}" onclick="toggleVorb('${v.id}',this)">
-      <div class="check-box"><span class="check-mark">✓</span></div>
-      <div class="ci-body">
-        <div class="ci-title">${v.title}<span class="ci-badge ${v.pflicht?'ci-pflicht':'ci-opt'}">${v.pflicht?'Pflicht':'Optional'}</span></div>
-        <div class="ci-hint">${v.hint}</div>
-      </div>
-    </div>`).join('');
-}
-
-function toggleVorb(id,el){
-  azChecked['vorb_'+id]=!azChecked['vorb_'+id];
-  el.classList.toggle('checked',azChecked['vorb_'+id]);
-}
-
-function resetWoche(){
-  oposData=[];stornoData=[];azText='';
-  Object.keys(oposNotes).forEach(k=>delete oposNotes[k]);
-  Object.keys(oposDone).forEach(k=>delete oposDone[k]);
-  Object.keys(stornoStatus).forEach(k=>delete stornoStatus[k]);
-  Object.keys(azChecked).forEach(k=>delete azChecked[k]);
-  ['opos','storno','az'].forEach(t=>{
-    const dz=document.getElementById('dz-'+t);
-    dz.classList.remove('ok');
-    document.getElementById('dl-'+t).innerHTML='<strong>PDF auswählen</strong><br>oder hierher ziehen';
-    document.getElementById('us-'+t).textContent='';
-    document.getElementById('fi-'+t).value='';
-  });
-  goStep(1);
-}
+})();
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </body>
 </html>
