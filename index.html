@@ -503,10 +503,11 @@ input[type=file]{display:none}
     var lbl=el('dl-'+type);
     lbl.innerHTML='<span style="color:var(--teal)">Wird gelesen \u2026</span>';
     stat.className='ust';stat.textContent='';
-      if(type==='storno'&&(file.name.endsWith('.xlsx')||file.name.endsWith('.xls'))){
-        parseStorXlsx(file,stat,lbl);
-        return;
-      }
+    if(type==='storno'&&(file.name.endsWith('.xlsx')||file.name.endsWith('.xls'))){
+      parseStorXlsx(file,stat,lbl);
+      return;
+    }
+    if(typeof pdfjsLib==='undefined'){
       lbl.innerHTML='<span style="color:var(--red)">PDF-Bibliothek nicht verfügbar</span>';
       stat.className='ust err';stat.textContent='Bitte Internetverbindung prüfen.';
       checkReady();return;
