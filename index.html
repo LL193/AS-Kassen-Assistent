@@ -242,6 +242,14 @@ input[type=file]{display:none}
         </div>
       </div>
       <div class="ib gold">Mindestens die OPOS-Liste wird benötigt. Storno und Auszahlung können später hinzugefügt werden.</div>
+      <div id="summary-preview" style="display:none">
+        <div class="sdiv"><div class="sdln"></div><div class="sdlb">Wochensummary — automatisch erstellt</div><div class="sdln"></div></div>
+        <div class="ib teal" id="summary-hint"></div>
+        <div style="display:flex;gap:8px;margin-bottom:4px">
+          <button class="bn" id="btn-summary-pdf">Summary als PDF öffnen &amp; drucken</button>
+          <button class="bs" id="btn-summary-reload">Neu generieren</button>
+        </div>
+      </div>
       <div class="snav"><div class="sp"></div><button class="bn" id="btn1" disabled>Weiter zur Übersicht →</button></div>
     </div>
 
@@ -318,6 +326,15 @@ input[type=file]{display:none}
 
       <div class="snav"><button class="bs" id="b5b">← Zurück</button><div class="sp"></div><button class="bp" id="b5r">Neue Woche starten</button></div>
     </div>
+
+    <div class="pg" id="pg6">
+      <div class="sey">Adressbuch</div>
+      <div class="sti">Kassenkontakte</div>
+      <div class="sde">Telefonnummern und Ansprechpartner einmalig eintragen — erscheinen dann in jeder Anrufmappe und im PDF.</div>
+      <div class="ib gold">Daten werden nur lokal im Browser gespeichert. Nach "Neue Woche starten" bleiben sie erhalten.</div>
+      <div id="adr-list"></div>
+      <div class="snav"><div class="sp"></div><button class="bn" id="btn-adr-save">Speichern</button></div>
+    </div>
   </div>
 </div>
 
@@ -326,6 +343,7 @@ input[type=file]{display:none}
   var PIN='1996';
   var opos=[],stor=[],azTxt='';
   var onotes={},odone={},sstat={},azck={},vck={};
+  var adrbuch={}; // {kasse_konto: {tel:'', ansprechpartner:'', fax:''}}
   var ofilt='alle';
   var step=1;
 
@@ -371,18 +389,22 @@ input[type=file]{display:none}
   }
 
   // STEPPER
-  var STEPS=[{n:1,l:'Upload'},{n:2,l:'Übersicht'},{n:3,l:'Kassengespräche'},{n:4,l:'Storno & Belege'},{n:5,l:'Abschluss'}];
+  var STEPS=[{n:1,l:'Upload'},{n:2,l:'Übersicht'},{n:3,l:'Kassengespräche'},{n:4,l:'Storno & Belege'},{n:5,l:'Abschluss'},{n:6,l:'Adressbuch'}];
 
   function buildStepper(){
     var bar=el('stepbar');bar.innerHTML='';
     STEPS.forEach(function(s){
       var d=document.createElement('div');
-      d.className='stab'+(s.n===step?' active':'')+(s.n<step?' done':'');
-      d.innerHTML='<span class="snum">'+(s.n<step?'&#10003;':s.n)+'</span>'+s.l;
-      d.addEventListener('click',function(){if(s.n<=step+1)goStep(s.n)});
+      var isAdr=s.n===6;
+      var accessible=s.n<=step+1||isAdr;
+      d.className='stab'+(s.n===step?' active':'')+(s.n<step&&!isAdr?' done':'');
+      d.innerHTML='<span class="snum">'+(s.n<step&&!isAdr?'&#10003;':s.n)+'</span>'+s.l;
+      d.style.cursor=accessible?'pointer':'default';
+      d.style.opacity=accessible?'1':'0.5';
+      d.addEventListener('click',function(){if(accessible)goStep(s.n)});
       bar.appendChild(d);
     });
-    el('pfill').style.width=(((step-1)/4)*100)+'%';
+    el('pfill').style.width=(((Math.min(step,5)-1)/4)*100)+'%';
   }
 
   function goStep(n){
@@ -394,6 +416,7 @@ input[type=file]{display:none}
     if(n===3)renderOpos();
     if(n===4)renderStep4();
     if(n===5)renderStep5();
+    if(n===6)renderAdressbuch();
     window.scrollTo(0,0);
   }
 
@@ -404,6 +427,7 @@ input[type=file]{display:none}
   el('b3n').addEventListener('click',function(){goStep(4)});
   el('b4b').addEventListener('click',function(){goStep(3)});
   el('b4n').addEventListener('click',function(){goStep(5)});
+  el('btn-adr-save').addEventListener('click',saveAdressbuch);
   el('b5b').addEventListener('click',function(){goStep(4)});
   el('b5r').addEventListener('click',resetWoche);
   el('btnXlsx').addEventListener('click',exportExcel);
@@ -467,7 +491,12 @@ input[type=file]{display:none}
         });
       },Promise.resolve(''));
     }).then(function(text){
-      if(type==='opos'){parseOpos(text);stat.className='ust ok';stat.textContent=opos.length+' Posten erkannt';}
+      if(type==='opos'){
+        parseOpos(text);
+        stat.className='ust ok';
+        stat.textContent=opos.length+' Posten erkannt';
+        setTimeout(function(){generateSummaryPdf();},400);
+      }
       else if(type==='storno'){parseStor(text);stat.className='ust ok';stat.textContent=stor.length+' Stornos erkannt';}
       else{azTxt=text;stat.className='ust ok';stat.textContent='Belege eingelesen';}
       el('dz-'+type).classList.add('ok');
@@ -480,9 +509,8 @@ input[type=file]{display:none}
     });
   }
 
-  function checkReady(){el('btn1').disabled=opos.length===0}
+  function checkReady(){opos=opos.filter(function(x){return x.mahn!=='2i'});el('btn1').disabled=opos.length===0}
 
-  // PARSE OPOS
   function parseOpos(text){
     opos=[];
     var blocks=text.split(/Konto:\s*(\d+)/);
@@ -504,13 +532,15 @@ input[type=file]{display:none}
         while((am=ar.exec(chunk))!==null)amts.push(parseFloat(am[1].replace(/\./g,'').replace(',','.')));
         if(amts.length<2)continue;
         var mm=chunk.match(/\b(2i|2|1)\b/);
+        var mahn=mm?mm[1]:'0';
+        if(mahn==='2i')continue; // Inkasso ausblenden
         var srm=chunk.match(/Sammelreferenz:\s*(A\S+)/);
         opos.push({konto:konto,kasse:kasse,isPriv:isPriv,
           patient:pm[1].trim(),versNr:pm[2].trim(),
           zeitraum:zm?zm[1]+'\u2013'+zm[2]:'',
           faktDatum:dates[0]||'',zahlZiel:dates[1]||'',
           fakt:amts[0],rest:amts[1],
-          mahn:mm?mm[1]:'0',ref:srm?srm[1]:''});
+          mahn:mahn,ref:srm?srm[1]:''});
       }
     }
   }
@@ -534,7 +564,7 @@ input[type=file]{display:none}
   // STEP 2
   function renderStep2(){
     var total=opos.reduce(function(s,x){return s+x.rest},0);
-    var m2=opos.filter(function(x){return x.mahn==='2'||x.mahn==='2i'});
+    var m2=opos.filter(function(x){return x.mahn==='2'});
     var m1=opos.filter(function(x){return x.mahn==='1'});
     var priv=opos.filter(function(x){return x.isPriv});
     var dq=total>0?((priv.reduce(function(s,x){return s+x.rest},0)/total)*100):0;
@@ -557,6 +587,14 @@ input[type=file]{display:none}
   }
 
   // STEP 3
+  function prioRank(g){
+    var maxM=g.posten.some(function(x){return x.mahn==='2'})?'2':g.posten.some(function(x){return x.mahn==='1'})?'1':'0';
+    if(g.isPriv)return 3;
+    if(maxM==='2')return 0;
+    if(maxM==='1')return 1;
+    return 2;
+  }
+
   function groupKasse(data){
     var map={};
     data.forEach(function(p){
@@ -565,7 +603,13 @@ input[type=file]{display:none}
       map[k].posten.push(p);
     });
     var arr=Object.values(map);
-    arr.sort(function(a,b){return b.posten.reduce(function(s,x){return s+x.rest},0)-a.posten.reduce(function(s,x){return s+x.rest},0)});
+    arr.sort(function(a,b){
+      var pa=prioRank(a),pb=prioRank(b);
+      if(pa!==pb)return pa-pb;
+      var sa=a.posten.reduce(function(s,x){return s+x.rest},0);
+      var sb=b.posten.reduce(function(s,x){return s+x.rest},0);
+      return sb-sa;
+    });
     arr.forEach(function(g){g.posten.sort(function(a,b){return b.rest-a.rest})});
     return arr;
   }
@@ -574,7 +618,7 @@ input[type=file]{display:none}
     if(!opos.length){el('olist').innerHTML='<div class="emp"><strong>Keine OPOS-Daten</strong>Bitte in Schritt 1 die OPOS-PDF hochladen.</div>';return}
     var q=(el('osearch').value||'').toLowerCase();
     var data=opos.slice();
-    if(ofilt==='m2')data=data.filter(function(x){return x.mahn==='2'||x.mahn==='2i'});
+    if(ofilt==='m2')data=data.filter(function(x){return x.mahn==='2'});
     if(ofilt==='m1')data=data.filter(function(x){return x.mahn==='1'});
     if(ofilt==='privat')data=data.filter(function(x){return x.isPriv});
     if(ofilt==='offen')data=data.filter(function(x){return!odone['d_'+x.konto]});
@@ -589,13 +633,13 @@ input[type=file]{display:none}
       var gid='g'+gi+g.konto;
       var sr=g.posten.reduce(function(s,x){return s+x.rest},0);
       var sf=g.posten.reduce(function(s,x){return s+x.fakt},0);
-      var maxM=g.posten.some(function(x){return x.mahn==='2'||x.mahn==='2i'})?'2':g.posten.some(function(x){return x.mahn==='1'})?'1':'0';
+      var maxM=g.posten.some(function(x){return x.mahn==='2'})?'2':g.posten.some(function(x){return x.mahn==='1'})?'1':'0';
       var isDone=!!odone['d_'+g.konto];
       var pats=[...new Set(g.posten.map(function(p){return p.patient}))];
       var refs=[...new Set(g.posten.map(function(p){return p.ref}).filter(Boolean))];
       var banner=g.isPriv
         ?'<div class="ab p"><strong>Hinweis Privat:</strong> Direktkontakt notwendig \u2014 Kasse hat keinen Zugriff.<br>'+g.posten.length+' Rechnung'+(g.posten.length>1?'en':'')+' \u00b7 Gesamt: <strong>'+fmt(sr)+'</strong></div>'
-        :'<div class="ab k"><strong>Gesprächsvorbereitung:</strong> '+pats.length+' Patient'+(pats.length>1?'en':'')+' \u2014 '+pats.join(', ')+'<br>Offener Gesamtbetrag: <strong>'+fmt(sr)+'</strong>'+(refs.length?' \u00b7 Sammelreferenzen: '+refs.join(', '):'')+'</div>';
+        :'<div class="ab k"><strong>Gesprächsvorbereitung:</strong> '+pats.length+' Patient'+(pats.length>1?'en':'')+' \u2014 '+pats.join(', ')+'<br>Offener Gesamtbetrag: <strong>'+fmt(sr)+'</strong>'+(refs.length?' \u00b7 Sammelreferenzen: '+refs.join(', '):'')+(adrbuch[adrKey(g.kasse,g.konto)]&&adrbuch[adrKey(g.kasse,g.konto)].tel?'<br>\u260e <strong>'+adrbuch[adrKey(g.kasse,g.konto)].tel+'</strong>'+(adrbuch[adrKey(g.kasse,g.konto)].ansp?' \u00b7 '+adrbuch[adrKey(g.kasse,g.konto)].ansp:''):'')+'</div>';
       var rows=g.posten.map(function(p){
         return'<tr><td style="font-weight:500">'+p.patient+'</td><td style="color:var(--t2);font-size:11px">'+p.versNr+'</td><td style="color:var(--t2);font-size:11px">'+p.zeitraum+'</td><td class="tr">'+fmt(p.fakt)+'</td><td class="tr '+(p.rest>500?'hi':'lo')+'">'+fmt(p.rest)+'</td><td style="text-align:center">'+mb(p.mahn)+'</td><td style="font-size:11px;color:var(--t2)">'+p.zahlZiel+'</td></tr>';
       }).join('');
@@ -675,7 +719,7 @@ input[type=file]{display:none}
     var allG=groupKasse(opos);
     var doneC=allG.filter(function(g){return odone['d_'+g.konto]}).length;
     var total=opos.reduce(function(s,x){return s+x.rest},0);
-    var m2=opos.filter(function(x){return x.mahn==='2'||x.mahn==='2i'}).length;
+    var m2=opos.filter(function(x){return x.mahn==='2'}).length;
     var sGel=Object.values(sstat).filter(function(v){return v==='solve'}).length;
     var azD=Object.keys(azck).filter(function(k){return k.indexOf('az')===0&&azck[k]}).length;
     el('wsumm').innerHTML=
@@ -707,7 +751,8 @@ input[type=file]{display:none}
       odone:odone,
       sstat:sstat,
       azck:azck,
-      vck:vck
+      vck:vck,
+      adrbuch:adrbuch
     };
     var blob=new Blob([JSON.stringify(session,null,2)],{type:'application/json'});
     var a=document.createElement('a');
@@ -731,6 +776,7 @@ input[type=file]{display:none}
         Object.assign(sstat,s.sstat||{});
         Object.assign(azck,s.azck||{});
         Object.assign(vck,s.vck||{});
+        Object.assign(adrbuch,s.adrbuch||{});
         stat.className='ust ok';
         stat.textContent='Session geladen: '+s.weekLabel+' ('+opos.length+' OPOS-Posten)';
         el('dl-session').innerHTML='<span style="color:var(--teal)">\u2713 '+file.name+'</span>';
@@ -829,7 +875,7 @@ input[type=file]{display:none}
     var dateStr=now.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});
     var allG=groupKasse(opos);
     var total=opos.reduce(function(s,x){return s+x.rest},0);
-    var m2=opos.filter(function(x){return x.mahn==='2'||x.mahn==='2i'}).length;
+    var m2=opos.filter(function(x){return x.mahn==='2'}).length;
     var AZ_LBL=['Stornos gutgeschrieben?','Rückbelastungen geprüft?','Lastschriften korrekt?','Auszahlungsbetrag abgeglichen?','Abweichungen dokumentiert?'];
     var SLBL={check:'Prüfen',act:'Act',call:'Call',privat:'Privat',wait:'Wait',solve:'Gelöst'};
 
@@ -870,13 +916,25 @@ input[type=file]{display:none}
       var isDone=!!odone['d_'+g.konto];
       var note=onotes[gid]||'';
       var sr=g.posten.reduce(function(s,x){return s+x.rest},0);
-      html+='<h3>'+g.kasse+' (Kto. '+g.konto+') &mdash; '+fmt(sr)+' &nbsp;<span style="font-weight:normal;color:'+(isDone?'#0f6e56':'#854f0b')+'">'+(isDone?'&#10003; Erledigt':'Offen')+'</span></h3>';
+      var adr=adrbuch[adrKey(g.kasse,g.konto)]||{};
+      var maxM=g.posten.some(function(x){return x.mahn==='2'})?'2':g.posten.some(function(x){return x.mahn==='1'})?'1':'0';
+      var prioLabel=g.isPriv?'Privat':maxM==='2'?'Sofort':maxM==='1'?'Hoch':'Normal';
+      html+='<h3>'+g.kasse+' <span style="font-weight:normal;font-size:10px;color:#6b6860">Kto. '+g.konto+' &nbsp;|&nbsp; Priorität: '+prioLabel+'</span>&nbsp;';
+      html+='<span style="font-weight:normal;color:'+(isDone?'#0f6e56':'#854f0b')+'">'+(isDone?'&#10003; Erledigt':'Offen')+'</span></h3>';
+      if(adr.tel||adr.ansp){
+        html+='<div style="font-size:10px;color:#0f6e56;background:#e1f5ee;border-radius:4px;padding:4px 8px;margin-bottom:6px;display:inline-block">';
+        if(adr.tel)html+='\u260e '+adr.tel+'&nbsp;&nbsp;';
+        if(adr.ansp)html+=adr.ansp+'&nbsp;&nbsp;';
+        if(adr.fax)html+='Fax: '+adr.fax+'&nbsp;&nbsp;';
+        if(adr.email)html+=adr.email;
+        html+='</div><br>';
+      }
       html+='<table><thead><tr><th>Patient</th><th>Vers.-Nr.</th><th>Zeitraum</th><th>Restbetrag</th><th>M</th><th>Zahlungsziel</th></tr></thead><tbody>';
       g.posten.forEach(function(p){
         html+='<tr><td>'+p.patient+'</td><td>'+p.versNr+'</td><td>'+p.zeitraum+'</td><td style="font-variant-numeric:tabular-nums;color:'+(p.rest>500?'#a32d2d':'#0f6e56')+'">'+fmt(p.rest)+'</td><td>'+p.mahn+'</td><td>'+p.zahlZiel+'</td></tr>';
       });
       html+='</tbody></table>';
-      if(note)html+='<div class="notiz"><strong>Notiz:</strong> '+note.replace(/\n/g,'<br>')+'</div>';
+      if(note)html+='<div class="notiz"><strong>Gesprächsnotiz:</strong> '+note.replace(/\n/g,'<br>')+'</div>';
     });
 
     // Stornos
@@ -910,9 +968,287 @@ input[type=file]{display:none}
     setTimeout(function(){w.print()},600);
   }
 
+  // ── AUTO SUMMARY PDF ─────────────────────────────────────
+  function generateSummaryPdf(){
+    if(!opos.length)return;
+    var now=new Date();
+    var dateStr=now.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});
+    var kwStr='KW '+kw(now)+' / '+now.getFullYear();
+    var allG=groupKasse(opos);
+    var total=opos.reduce(function(s,x){return s+x.rest},0);
+    var m2list=opos.filter(function(x){return x.mahn==='2'});
+    var m1list=opos.filter(function(x){return x.mahn==='1'});
+    var privList=opos.filter(function(x){return x.isPriv});
+    var dubQuote=total>0?((privList.reduce(function(s,x){return s+x.rest},0)/total)*100):0;
+
+    // Show preview block
+    el('summary-preview').style.display='block';
+    el('summary-hint').textContent=
+      allG.length+' Kassen \u00b7 '+opos.length+' offene Posten \u00b7 '+fmt(total)+' Restbetrag \u00b7 '+
+      m2list.length+' auf Mahnstufe 2'+
+      (stor.length?' \u00b7 '+stor.length+' Stornos':'');
+
+    function buildSummaryHtml(){
+      var h='<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8">';
+      h+='<title>AS-Kassen-Assistent \u2014 Wochensummary '+kwStr+'</title>';
+      h+='<style>';
+      h+='*{box-sizing:border-box;margin:0;padding:0}';
+      h+='body{font-family:Arial,Helvetica,sans-serif;font-size:10.5px;color:#1a1916;padding:20px 24px}';
+      h+='.header{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1a1916;padding-bottom:8px;margin-bottom:14px}';
+      h+='.header-left h1{font-size:17px;font-weight:bold;letter-spacing:-.2px}';
+      h+='.header-left .sub{font-size:10px;color:#6b6860;margin-top:2px}';
+      h+='.header-right{font-size:10px;color:#6b6860;text-align:right}';
+      h+='.kw{font-size:13px;font-weight:bold;color:#1a1916}';
+      h+='.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px}';
+      h+='.met{border:1px solid #e2ddd4;border-radius:5px;padding:7px 10px}';
+      h+='.met.red{border-color:#f09595;background:#fcebeb}';
+      h+='.met.amber{border-color:#ef9f27;background:#faeeda}';
+      h+='.ml{font-size:8.5px;text-transform:uppercase;letter-spacing:.05em;color:#9e9b93;margin-bottom:3px}';
+      h+='.met.red .ml{color:#a32d2d}.met.amber .ml{color:#854f0b}';
+      h+='.mv{font-size:17px;font-weight:bold}';
+      h+='.met.red .mv{color:#a32d2d}.met.amber .mv{color:#854f0b}';
+      h+='h2{font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:.08em;color:#6b6860;border-bottom:1px solid #e2ddd4;padding-bottom:4px;margin:14px 0 8px}';
+      h+='h3{font-size:10.5px;font-weight:bold;margin:10px 0 4px;display:flex;align-items:center;gap:6px}';
+      h+='.prio-tag{font-size:8.5px;font-weight:bold;padding:1px 6px;border-radius:3px;text-transform:uppercase;letter-spacing:.04em}';
+      h+='.p-sofort{background:#fcebeb;color:#a32d2d}';
+      h+='.p-hoch{background:#faeeda;color:#854f0b}';
+      h+='.p-normal{background:#e1f5ee;color:#0f6e56}';
+      h+='.p-privat{background:#faeeda;color:#412402}';
+      h+='table{width:100%;border-collapse:collapse;margin-bottom:6px;font-size:10px}';
+      h+='th{text-align:left;padding:4px 6px;background:#f9f7f3;border-bottom:1px solid #e2ddd4;font-size:9px;font-weight:bold;text-transform:uppercase;letter-spacing:.04em;color:#6b6860}';
+      h+='td{padding:4px 6px;border-bottom:1px solid #f0ede6;vertical-align:top}';
+      h+='.sum-row td{background:#f9f7f3;font-weight:bold;border-top:1px solid #ccc8be}';
+      h+='.nachhak{background:#fff8ed;border-left:3px solid #d4a843;padding:5px 8px;font-size:10px;color:#7a5c18;margin:4px 0 8px}';
+      h+='.nachhak strong{display:block;margin-bottom:2px;font-size:9px;text-transform:uppercase;letter-spacing:.05em}';
+      h+='.warn-box{background:#fcebeb;border-left:3px solid #f09595;padding:5px 8px;font-size:10px;color:#a32d2d;margin-bottom:8px}';
+      h+='.warn-box strong{display:block;margin-bottom:2px;font-size:9px;text-transform:uppercase;letter-spacing:.05em}';
+      h+='.info-box{background:#e1f5ee;border-left:3px solid #5dcaa5;padding:5px 8px;font-size:10px;color:#0f6e56;margin-bottom:8px}';
+      h+='.sect-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}';
+      h+='.col{}';
+      h+='.antrag-tbl td:last-child{font-weight:bold}';
+      h+='.fehlt{color:#a32d2d}.ok{color:#0f6e56}.offen{color:#854f0b}';
+      h+='@media print{body{padding:12px 14px}@page{margin:1cm}}';
+      h+='</style></head><body>';
+
+      // HEADER
+      h+='<div class="header">';
+      h+='<div class="header-left"><h1>AS-Kassen-Assistent &mdash; Wochensummary</h1><div class="sub">HOMECARE &nbsp;|&nbsp; Erstellt am '+dateStr+'</div></div>';
+      h+='<div class="header-right"><div class="kw">'+kwStr+'</div><div>Verwaltungsfachkraft</div></div>';
+      h+='</div>';
+
+      // METRICS
+      h+='<div class="metrics">';
+      h+='<div class="met '+(m2list.length>0?'red':'')+'"><div class="ml">Mahnstufe 2</div><div class="mv">'+m2list.length+'</div></div>';
+      h+='<div class="met '+(m1list.length>0?'amber':'')+'"><div class="ml">Mahnstufe 1</div><div class="mv">'+m1list.length+'</div></div>';
+      h+='<div class="met"><div class="ml">Kassen</div><div class="mv">'+allG.length+'</div></div>';
+      h+='<div class="met"><div class="ml">Offene Posten</div><div class="mv">'+opos.length+'</div></div>';
+      h+='<div class="met '+(dubQuote>5?'red':'')+'"><div class="ml">Dubiosen-Quote</div><div class="mv">'+dubQuote.toFixed(1)+'%</div></div>';
+      h+='</div>';
+
+      // SOFORT-MASSNAHMEN
+      var sofort=[];
+      if(m2list.length>0){
+        var kassenM2=[...new Set(m2list.map(function(x){return x.kasse}))];
+        sofort.push('Mahnstufe 2: '+m2list.length+' Posten bei '+kassenM2.join(', ')+' &mdash; sofort kl\u00e4ren, Abschreibungsrisiko!');
+      }
+      if(dubQuote>5)sofort.push('Dubiosen-Quote '+dubQuote.toFixed(1)+'% \u00fcberschreitet Ziel (3\u20135%). Privatzahler direkt kontaktieren \u2014 AS Bremen hat keinen Zugriff.');
+      if(sofort.length){
+        h+='<div class="warn-box"><strong>Sofort-Ma\u00dfnahmen</strong>'+sofort.map(function(s){return'\u25b6 '+s}).join('<br>')+'</div>';
+      }
+
+      // KASSEN ÜBERSICHT - sortiert nach Restbetrag
+      h+='<h2>Kassengespräche &mdash; Reihenfolge nach Priorität</h2>';
+      h+='<table><thead><tr>';
+      h+='<th>#</th><th>Kasse</th><th>Konto</th><th>Patienten</th><th style="text-align:right">Fakt.-Betrag</th><th style="text-align:right">Restbetrag</th><th>H\u00f6chste Mahnstufe</th><th>Priorit\u00e4t</th><th>Zahlungsziel (frühestes)</th>';
+      h+='</tr></thead><tbody>';
+      allG.forEach(function(g,i){
+        var sr=g.posten.reduce(function(s,x){return s+x.rest},0);
+        var sf=g.posten.reduce(function(s,x){return s+x.fakt},0);
+        var maxM=g.posten.some(function(x){return x.mahn==='2'})?'2':g.posten.some(function(x){return x.mahn==='1'})?'1':'0';
+        var earlyDate=g.posten.map(function(p){return p.zahlZiel}).filter(Boolean).sort()[0]||'';
+        var prio=g.isPriv?'<span class="prio-tag p-privat">Privat</span>':maxM==='2'?'<span class="prio-tag p-sofort">Sofort</span>':maxM==='1'?'<span class="prio-tag p-hoch">Hoch</span>':'<span class="prio-tag p-normal">Normal</span>';
+        var pats=[...new Set(g.posten.map(function(p){return p.patient}))];
+        h+='<tr>';
+        h+='<td style="color:#9e9b93">'+(i+1)+'.</td>';
+        h+='<td style="font-weight:bold">'+g.kasse+'</td>';
+        h+='<td style="color:#9e9b93">'+g.konto+'</td>';
+        h+='<td>'+pats.join(', ')+'</td>';
+        h+='<td style="text-align:right;font-variant-numeric:tabular-nums">'+fmt(sf)+'</td>';
+        h+='<td style="text-align:right;font-weight:bold;font-variant-numeric:tabular-nums;color:'+(sr>500?'#a32d2d':'#0f6e56')+'">'+fmt(sr)+'</td>';
+        h+='<td style="text-align:center;color:'+(maxM==='2'?'#a32d2d':maxM==='1'?'#854f0b':'#6b6860')+'">'+( maxM==='0'?'&mdash;':maxM)+'</td>';
+        h+='<td>'+prio+'</td>';
+        h+='<td style="color:#6b6860">'+earlyDate+'</td>';
+        h+='</tr>';
+      });
+      // Summe
+      h+='<tr class="sum-row"><td colspan="4">Gesamt</td>';
+      h+='<td style="text-align:right;font-variant-numeric:tabular-nums">'+fmt(opos.reduce(function(s,x){return s+x.fakt},0))+'</td>';
+      h+='<td style="text-align:right;font-variant-numeric:tabular-nums">'+fmt(total)+'</td>';
+      h+='<td colspan="3"></td></tr>';
+      h+='</tbody></table>';
+
+      // DETAIL PRO KASSE: Nachhak-Liste
+      h+='<h2>Nachhak-Liste pro Kasse</h2>';
+      allG.forEach(function(g){
+        var sr=g.posten.reduce(function(s,x){return s+x.rest},0);
+        var maxM=g.posten.some(function(x){return x.mahn==='2'})?'2':g.posten.some(function(x){return x.mahn==='1'})?'1':'0';
+        var refs=[...new Set(g.posten.map(function(p){return p.ref}).filter(Boolean))];
+        h+='<h3>'+g.kasse+'<span style="font-weight:normal;color:#6b6860;font-size:10px">Kto. '+g.konto+'</span>';
+        if(maxM==='2')h+='<span class="prio-tag p-sofort">Sofort</span>';
+        else if(maxM==='1')h+='<span class="prio-tag p-hoch">Hoch</span>';
+        else if(g.isPriv)h+='<span class="prio-tag p-privat">Privat</span>';
+        else h+='<span class="prio-tag p-normal">Normal</span>';
+        h+='</h3>';
+
+        if(g.isPriv){
+          h+='<div class="nachhak"><strong>Hinweis Privat</strong>Direktkontakt durch HOMECARE notwendig &mdash; AS Bremen hat keinen Zugriff auf Patientendaten.<br>';
+          h+='Patienten: '+[...new Set(g.posten.map(function(p){return p.patient}))].join(', ')+'</div>';
+        }
+
+        h+='<table><thead><tr><th>Patient</th><th>Vers.-Nr.</th><th>Zeitraum</th><th style="text-align:right">Restbetrag</th><th>M</th><th>Zahlungsziel</th><th>Nachhaken</th></tr></thead><tbody>';
+        g.posten.forEach(function(p){
+          var nachhak='';
+          if(p.mahn==='2')nachhak='<span class="fehlt">Sofort kl\u00e4ren &mdash; \u00fcberf\u00e4llig!</span>';
+          else if(p.mahn==='1')nachhak='<span class="offen">Zahlung anmahnen</span>';
+          else if(p.rest<p.fakt)nachhak='<span class="offen">Teilzahlung &mdash; Rest kl\u00e4ren</span>';
+          else nachhak='<span style="color:#9e9b93">Zahlung abwarten</span>';
+          h+='<tr>';
+          h+='<td style="font-weight:bold">'+p.patient+'</td>';
+          h+='<td style="color:#6b6860">'+p.versNr+'</td>';
+          h+='<td style="color:#6b6860">'+p.zeitraum+'</td>';
+          h+='<td style="text-align:right;font-weight:bold;color:'+(p.rest>500?'#a32d2d':'#0f6e56');
+          h+='">'+fmt(p.rest)+'</td>';
+          h+='<td style="font-weight:bold;color:'+(p.mahn==='2'?'#a32d2d':p.mahn==='1'?'#854f0b':'#6b6860')+'">'+( p.mahn==='0'?'&mdash;':p.mahn)+'</td>';
+          h+='<td style="color:#6b6860">'+p.zahlZiel+'</td>';
+          h+='<td>'+nachhak+'</td>';
+          h+='</tr>';
+        });
+        h+='<tr class="sum-row"><td colspan="3">Summe '+g.kasse+'</td><td style="text-align:right;font-variant-numeric:tabular-nums">'+fmt(sr)+'</td><td colspan="3"></td></tr>';
+        h+='</tbody></table>';
+        if(refs.length)h+='<div style="font-size:9.5px;color:#6b6860;margin-bottom:8px">Sammelreferenzen: '+refs.join(', ')+'</div>';
+      });
+
+      // STORNOS
+      if(stor.length){
+        h+='<h2>Stornierungen &mdash; zu bearbeiten</h2>';
+        h+='<div class="info-box">Liste bis zum <strong>15. des Monats</strong> an AS Bremen senden. Dubiose-Ziel: 3\u20135%.</div>';
+        h+='<table><thead><tr><th>Patient</th><th>Vers.-Nr.</th><th>Betrag</th><th>Datum</th><th>Empfohlene Kategorie</th></tr></thead><tbody>';
+        stor.forEach(function(s){
+          // Auto-suggest category based on amount and context
+          var suggest=s.betrag>500?'Act &mdash; hoher Betrag':'Prüfen';
+          h+='<tr><td style="font-weight:bold">'+s.patient+'</td><td style="color:#6b6860">'+s.versNr+'</td><td style="font-variant-numeric:tabular-nums">'+fmt(s.betrag)+'</td><td style="color:#6b6860">'+s.datum+'</td><td class="offen">'+suggest+'</td></tr>';
+        });
+        h+='</tbody></table>';
+      }
+
+      // ANTRÄGE & BEWILLIGUNGEN CHECKLISTE
+      h+='<h2>Anträge &amp; Bewilligungen &mdash; Statusübersicht</h2>';
+      var neukunden=[...new Set(opos.filter(function(x){return!x.isPriv}).map(function(x){return x.patient}))];
+      h+='<div class="info-box">Für alle Versicherten mit offenen Posten prüfen: Liegen §36, §39 und §45b-Dokumente vollständig vor?</div>';
+      h+='<table class="antrag-tbl"><thead><tr><th>Patient</th><th>Vers.-Nr.</th><th>Kasse</th><th>§36 Kombileistung</th><th>§39 Verhinderungspflege</th><th>§45b Abtretung</th><th>Fax-Nachweis</th></tr></thead><tbody>';
+      var shown=[];
+      allG.forEach(function(g){
+        if(g.isPriv)return;
+        g.posten.forEach(function(p){
+          if(shown.indexOf(p.versNr)>=0)return;
+          shown.push(p.versNr);
+          var cell='<span class="offen">Prüfen</span>';
+          h+='<tr><td style="font-weight:bold">'+p.patient+'</td><td style="color:#6b6860">'+p.versNr+'</td><td>'+g.kasse+'</td><td>'+cell+'</td><td>'+cell+'</td><td>'+cell+'</td><td>'+cell+'</td></tr>';
+        });
+      });
+      h+='</tbody></table>';
+      h+='<div style="font-size:9px;color:#9e9b93;margin-top:4px">Spalten manuell ausfüllen nach Prüfung in heimbas (Stammdaten / Anträge)</div>';
+
+      // FUSSZEILE
+      h+='<div style="margin-top:20px;padding-top:8px;border-top:1px solid #e2ddd4;display:flex;justify-content:space-between;font-size:9px;color:#9e9b93">';
+      h+='<span>AS-Kassen-Assistent &mdash; HOMECARE</span>';
+      h+='<span>'+kwStr+' &nbsp;|&nbsp; '+dateStr+'</span>';
+      h+='<span>Seite <span class="page-num"></span></span>';
+      h+='</div>';
+      h+='</body></html>';
+      return h;
+    }
+
+    // Wire up buttons
+    el('btn-summary-pdf').onclick=function(){
+      var w=window.open('','_blank');
+      w.document.write(buildSummaryHtml());
+      w.document.close();w.focus();
+      setTimeout(function(){w.print()},700);
+    };
+    el('btn-summary-reload').onclick=function(){generateSummaryPdf()};
+  }
+
+  // ── ADRESSBUCH ───────────────────────────────────────────
+  var BEKANNTE_KASSEN=[
+    {kasse:'Techniker Krankenkasse',konto:'1700'},
+    {kasse:'Pflegekasse der AOK Bayern',konto:'1706'},
+    {kasse:'Landwirtschaftliche Pflegekasse',konto:'1724'},
+    {kasse:'HEK – Hanseatische',konto:'1725'},
+    {kasse:'Sozialversicherung',konto:'1730'},
+    {kasse:'Pflegekasse / SVA',konto:'1740'},
+  ];
+
+  function adrKey(kasse,konto){return kasse+'|'+konto}
+
+  function renderAdressbuch(){
+    // Merge known kassen with any from current opos
+    var allKassen=BEKANNTE_KASSEN.slice();
+    groupKasse(opos).forEach(function(g){
+      if(g.isPriv)return;
+      var exists=allKassen.some(function(k){return k.konto===g.konto});
+      if(!exists)allKassen.push({kasse:g.kasse,konto:g.konto});
+    });
+
+    var html=allKassen.map(function(k){
+      var key=adrKey(k.kasse,k.konto);
+      var a=adrbuch[key]||{tel:'',ansp:'',fax:'',email:''};
+      return'<div class="uc" style="margin-bottom:10px">'+
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'+
+          '<div style="font-size:13px;font-weight:500;flex:1">'+k.kasse+'</div>'+
+          '<span style="font-size:11px;color:var(--t3)">Kto. '+k.konto+'</span>'+
+        '</div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+
+          '<div><div style="font-size:11px;color:var(--t3);margin-bottom:3px">Telefon Abrechnung</div>'+
+            '<input type="text" class="adr-inp" data-key="'+key+'" data-field="tel" value="'+( a.tel||'')+'" placeholder="z.B. 089 123456-0" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:var(--rs);font-size:12px;background:var(--sur);color:var(--tx);outline:none"></div>'+
+          '<div><div style="font-size:11px;color:var(--t3);margin-bottom:3px">Ansprechpartner</div>'+
+            '<input type="text" class="adr-inp" data-key="'+key+'" data-field="ansp" value="'+(a.ansp||'')+'" placeholder="Name, Abt." style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:var(--rs);font-size:12px;background:var(--sur);color:var(--tx);outline:none"></div>'+
+          '<div><div style="font-size:11px;color:var(--t3);margin-bottom:3px">Fax</div>'+
+            '<input type="text" class="adr-inp" data-key="'+key+'" data-field="fax" value="'+(a.fax||'')+'" placeholder="Fax-Nummer" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:var(--rs);font-size:12px;background:var(--sur);color:var(--tx);outline:none"></div>'+
+          '<div><div style="font-size:11px;color:var(--t3);margin-bottom:3px">E-Mail</div>'+
+            '<input type="text" class="adr-inp" data-key="'+key+'" data-field="email" value="'+(a.email||'')+'" placeholder="abrechnung@kasse.de" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:var(--rs);font-size:12px;background:var(--sur);color:var(--tx);outline:none"></div>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+    el('adr-list').innerHTML=html;
+  }
+
+  function saveAdressbuch(){
+    document.querySelectorAll('.adr-inp').forEach(function(inp){
+      var key=inp.getAttribute('data-key');
+      var field=inp.getAttribute('data-field');
+      if(!adrbuch[key])adrbuch[key]={tel:'',ansp:'',fax:'',email:''};
+      adrbuch[key][field]=inp.value.trim();
+    });
+    var btn=el('btn-adr-save');
+    btn.textContent='Gespeichert \u2713';
+    btn.style.background='var(--teal)';btn.style.borderColor='var(--teal)';btn.style.color='#fff';
+    setTimeout(function(){btn.textContent='Speichern';btn.style.background='';btn.style.borderColor='';btn.style.color='';},1800);
+  }
+
+  function adrBadge(kasse,konto){
+    var a=adrbuch[adrKey(kasse,konto)];
+    if(!a||(!a.tel&&!a.ansp))return'';
+    var parts=[];
+    if(a.tel)parts.push('\u260e '+a.tel);
+    if(a.ansp)parts.push(a.ansp);
+    return'<div style="font-size:11px;color:var(--teal);background:var(--tbg);border-radius:4px;padding:3px 8px;margin-left:8px;display:inline-block">'+parts.join(' \u00b7 ')+'</div>';
+  }
+
   function resetWoche(){
     opos=[];stor=[];azTxt='';
     [onotes,odone,sstat,azck,vck].forEach(function(o){Object.keys(o).forEach(function(k){delete o[k]})});
+    // adrbuch wird bewusst NICHT geleert — bleibt über Wochen erhalten
     ['opos','storno','az'].forEach(function(t){
       el('dz-'+t).classList.remove('ok');
       el('dl-'+t).innerHTML='<strong>PDF auswählen</strong><br>oder hierher ziehen';
