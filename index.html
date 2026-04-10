@@ -317,6 +317,15 @@ input[type=file]{display:none}
       <div class="sti">Stornos &amp; Auszahlungsbelege</div>
       <div class="sde">Stornierungen kategorisieren, dann Auszahlungsbelege kontrollieren.</div>
       <div class="sdiv"><div class="sdln"></div><div class="sdlb">Stornierungen</div><div class="sdln"></div></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px" id="stor-filter-pills">
+        <button class="fp active" data-sf="offen">Nur offene (Nein)</button>
+        <button class="fp" data-sf="alle">Alle</button>
+        <button class="fp" data-sf="nein">Gutschrift: Nein</button>
+        <button class="fp" data-sf="vielleicht">Gutschrift: Vielleicht</button>
+        <button class="fp" data-sf="ja">Gutschrift: Ja</button>
+        <button class="fp" data-sf="rueck">Mit Rückbelastung</button>
+        <button class="fp" data-sf="hoch">Art 7–8 (hoch)</button>
+      </div>
       <div id="stowrap"></div>
       <div class="sdiv" style="margin-top:20px"><div class="sdln"></div><div class="sdlb">Auszahlungsbelege kontrollieren</div><div class="sdln"></div></div>
       <div id="azwrap"></div>
@@ -369,6 +378,7 @@ input[type=file]{display:none}
   function allOpos(){return oposd.concat(opos);}
   var onotes={},odone={},sstat={},azck={},vck={};
   var ofilt='alle';
+  var sfilt='offen';
   var step=1;
 
   var KASSE={
@@ -518,13 +528,29 @@ input[type=file]{display:none}
         return p.then(function(txt){
           return pdf.getPage(i).then(function(pg){
             return pg.getTextContent().then(function(c){
-              return txt+c.items.map(function(x){return x.str}).join(' ')+'\n';
+              // Group text items by Y position to reconstruct lines
+              var lineMap={};
+              c.items.forEach(function(item){
+                if(!item.str.trim())return;
+                var y=Math.round(item.transform[5]);
+                if(!lineMap[y])lineMap[y]=[];
+                lineMap[y].push({x:item.transform[4],str:item.str});
+              });
+              // Sort lines top-to-bottom (descending Y in PDF coords)
+              var ys=Object.keys(lineMap).map(Number).sort(function(a,b){return b-a;});
+              var pageText=ys.map(function(y){
+                var words=lineMap[y].sort(function(a,b){return a.x-b.x;});
+                return words.map(function(w){return w.str;}).join(' ');
+              }).join('\n');
+              return txt+pageText+'\n';
             });
           });
         });
       },Promise.resolve(''));
     }).then(function(text){
       if(type==='oposd'){
+        var dbg=text.split('\n').slice(0,30);
+        console.log('RAW LINES:',JSON.stringify(dbg));
         parseOposInto(text,true);
         stat.className='ust ok';
         stat.textContent=oposd.length+' Dubiose-Posten erkannt';
@@ -548,39 +574,71 @@ input[type=file]{display:none}
     });
   }
 
-  function checkReady(){opos=opos.filter(function(x){return x.mahn!=='2i'});el('btn1').disabled=opos.length===0}
+  function checkReady(){
+    opos=opos.filter(function(x){return x.mahn!=='2i'});
+    oposd=oposd.filter(function(x){return x.mahn!=='2i'});
+    el('btn1').disabled=allOpos().length===0;
+  }
 
   function parseOposInto(text,isDubiose){
     var target=isDubiose?oposd:opos;
     target.length=0;
-    var blocks=text.split(/Konto:\s*(\d+)/);
-    for(var bi=1;bi<blocks.length;bi+=2){
-      var konto=blocks[bi].trim();
-      var block=blocks[bi+1]||'';
-      var kasse=KASSE[konto]||'Konto '+konto;
-      var isPriv=PRIV.indexOf(konto)>=0;
-      var re=/1011\s+\d{5}([\s\S]*?)(?=1011\s+\d{5}|Zwischensumme|$)/g;
-      var m;
-      while((m=re.exec(block))!==null){
-        var chunk=m[1];
-        var pm=chunk.match(/([A-Z\u00c4\u00d6\u00dc][^\n,]+),\s*([A-Za-z0-9]+),/);
-        if(!pm)continue;
-        var zm=chunk.match(/(\d{2}\.\d{2}\.\d{4})-(\d{2}\.\d{2}\.\d{4})/);
-        var dates=[],dr=/\d{2}\.\d{2}\.\d{4}/g,dm;
-        while((dm=dr.exec(chunk))!==null)dates.push(dm[0]);
-        var amts=[],ar=/(\d{1,3}(?:\.\d{3})*,\d{2})\s*\u20ac/g,am;
-        while((am=ar.exec(chunk))!==null)amts.push(parseFloat(am[1].replace(/\./g,'').replace(',','.')));
-        if(amts.length<2)continue;
-        var mm=chunk.match(/\b(2i|2|1)\b/);
-        var mahn=mm?mm[1]:'0';
-        if(mahn==='2i')continue; // Inkasso ausblenden
-        var srm=chunk.match(/Sammelreferenz:\s*(A\S+)/);
-        target.push({konto:konto,kasse:kasse,isPriv:isPriv,isDubiose:isDubiose,
-          patient:pm[1].trim(),versNr:pm[2].trim(),
-          zeitraum:zm?zm[1]+'\u2013'+zm[2]:'',
-          faktDatum:dates[0]||'',zahlZiel:dates[1]||'',
-          fakt:amts[0],rest:amts[1],
-          mahn:mahn,ref:srm?srm[1]:''});
+    // Exact pdf.js structure (Y-position based line reconstruction):
+    // "Konto: NNNN"
+    // "DD.MM.YYYY DD.MM.YYYY N,NN \u20ac N,NN \u20ac [FLAGS]"  <- amounts FIRST
+    // "Kassenname"
+    // "A233XXXXXX [XX]"                                         <- rechnNr (starts with A+digits)
+    // "Patient, VersNr, 1011 NNNNN"
+    // "TT.MM.JJJJ-TT.MM.JJJJ"
+    var lines=text.split('\n').map(function(l){return l.trim();}).filter(Boolean);
+    var kontoRe=/^Konto:\s*(\d+)$/;
+    var amtRe=/^(\d{2}\.\d{2}\.\d{4})\s+(\d{2}\.\d{2}\.\d{4})\s+(\d{1,3}(?:\.\d{3})*,\d{2})\s*\S+\s+(\d{1,3}(?:\.\d{3})*,\d{2})\s*\S*\s*(.*)$/;
+    var rechnRe=/^A\d{6,}/;
+    var patRe=/^(.+?),\s*(\S+),\s+1011\s+\d{5}$/;
+    var zeitRe=/^(\d{2}\.\d{2}\.\d{4})-(\d{2}\.\d{2}\.\d{4})$/;
+    var skipRe=/^(Offene Postenliste|A233 Bezugsdatum|Rechnungsnr|Fakt\.|Beh\.Person|Zwischensumme|Legende|M-Privat|Sammelreferenz|Summe:)/;
+    var curKonto='',st=0,pending={};
+    for(var i=0;i<lines.length;i++){
+      var line=lines[i];
+      if(!line)continue;
+      if(skipRe.test(line)){st=0;continue;}
+      var km=line.match(kontoRe);
+      if(km){curKonto=km[1];st=0;continue;}
+      if(st===0){
+        var am=line.match(amtRe);
+        if(am){
+          var flags=am[5].trim();
+          var mahn=/2i/.test(flags)?'2i':/\b2\b/.test(flags)?'2':/\b1\b/.test(flags)?'1':'0';
+          if(mahn==='2i')continue;
+          pending={konto:curKonto,kasse:KASSE[curKonto]||'',
+            isPriv:PRIV.indexOf(curKonto)>=0,isDubiose:isDubiose,
+            faktDatum:am[1],zahlZiel:am[2],
+            fakt:parseFloat(am[3].replace(/\./g,'').replace(',','.')),
+            rest:parseFloat(am[4].replace(/\./g,'').replace(',','.')),
+            mahn:mahn,
+            flagR:flags.split(' ').indexOf('R')>=0,
+            flagX:flags.split(' ').indexOf('X')>=0,
+            rechnNr:'',patient:'',versNr:'',zeitraum:'',ref:''};
+          st=1;
+        }
+        continue;
+      }
+      if(st===1){pending.kasse=pending.kasse||line;st=2;continue;}
+      if(st===2){
+        if(rechnRe.test(line)){pending.rechnNr=line.replace(/\s+/g,'');st=3;}
+        else{st=0;}
+        continue;
+      }
+      if(st===3){
+        var pm=line.match(patRe);
+        if(pm){pending.patient=pm[1].trim();pending.versNr=pm[2].trim();st=4;}
+        else{st=0;}
+        continue;
+      }
+      if(st===4){
+        var zm=line.match(zeitRe);
+        if(zm){pending.zeitraum=zm[1]+'\u2013'+zm[2];target.push(pending);}
+        st=0;continue;
       }
     }
   }
@@ -964,12 +1022,48 @@ input[type=file]{display:none}
   }
 
   // STEP 3
+  // Prioritäten (niedrigere Zahl = höhere Priorität):
+  // 0: Dubiose + M2         — sofortiger Handlungsbedarf
+  // 1: Dubiose + M1         — sehr dringend
+  // 2: Dubiose + R          — dringend
+  // 3: Dubiose (ohne M/R)   — erhöht
+  // 4: M2 + R               — sofort
+  // 5: M2                   — sofort
+  // 6: M1 + R               — hoch
+  // 7: M1                   — hoch
+  // 8: R only               — prüfen
+  // 9: Normal               — normal
+  // 10: Privat              — direkt
   function prioRank(g){
-    var maxM=g.posten.some(function(x){return x.mahn==='2'})?'2':g.posten.some(function(x){return x.mahn==='1'})?'1':'0';
-    if(g.isPriv)return 3;
-    if(maxM==='2')return 0;
-    if(maxM==='1')return 1;
-    return 2;
+    var hasM2=g.posten.some(function(x){return x.mahn==='2'});
+    var hasM1=g.posten.some(function(x){return x.mahn==='1'});
+    var hasR =g.posten.some(function(x){return x.flagR});
+    var hasDub=g.posten.some(function(x){return x.isDubiose});
+    if(g.isPriv&&!hasDub)return 10;
+    if(hasDub&&hasM2)return 0;
+    if(hasDub&&hasM1)return 1;
+    if(hasDub&&hasR) return 2;
+    if(hasDub)       return 3;
+    if(hasM2&&hasR)  return 4;
+    if(hasM2)        return 5;
+    if(hasM1&&hasR)  return 6;
+    if(hasM1)        return 7;
+    if(hasR)         return 8;
+    return 9;
+  }
+
+  function prioLabel(g){
+    var r=prioRank(g);
+    if(r<=1)return{label:'Dubiose · M'+( r===0?'2':'1'),cls:'bg-m2',urgent:true};
+    if(r===2)return{label:'Dubiose · R',cls:'bg-m2',urgent:true};
+    if(r===3)return{label:'Dubiose',cls:'bg-m2',urgent:true};
+    if(r===4)return{label:'M2 · R',cls:'bg-m2',urgent:true};
+    if(r===5)return{label:'Mahnstufe 2',cls:'bg-m2',urgent:true};
+    if(r===6)return{label:'M1 · R',cls:'bg-m1',urgent:false};
+    if(r===7)return{label:'Mahnstufe 1',cls:'bg-m1',urgent:false};
+    if(r===8)return{label:'Rückbelastung',cls:'bg-n',urgent:false};
+    if(r===10)return{label:'Privat',cls:'bg-p',urgent:false};
+    return{label:'Normal',cls:'bg-n',urgent:false};
   }
 
   function groupKasse(data){
@@ -1006,6 +1100,7 @@ input[type=file]{display:none}
     var doneC=allG.filter(function(g){return odone['d_'+g.konto]}).length;
     el('ohint').textContent=groups.length+' Kassen \u00b7 '+data.length+' Posten \u00b7 '+fmt(total)+' offen \u00b7 '+doneC+' von '+allG.length+' Anrufe erledigt';
     var list=el('olist');list.innerHTML='';
+    var lastUrgent=null;
     groups.forEach(function(g,gi){
       var gid='g'+gi+g.konto;
       var sr=g.posten.reduce(function(s,x){return s+x.rest},0);
@@ -1018,22 +1113,48 @@ input[type=file]{display:none}
         ?'<div class="ab p"><strong>Hinweis Privat:</strong> Direktkontakt notwendig \u2014 Kasse hat keinen Zugriff.<br>'+g.posten.length+' Rechnung'+(g.posten.length>1?'en':'')+' \u00b7 Gesamt: <strong>'+fmt(sr)+'</strong></div>'
         :'<div class="ab k"><strong>Gesprächsvorbereitung:</strong> '+pats.length+' Patient'+(pats.length>1?'en':'')+' \u2014 '+pats.join(', ')+'<br>Offener Gesamtbetrag: <strong>'+fmt(sr)+'</strong>'+(refs.length?' \u00b7 Sammelreferenzen: '+refs.join(', '):'')+'</div>';
       var rows=g.posten.map(function(p){
-        return'<tr><td style="font-weight:500">'+p.patient+'</td><td style="color:var(--t2);font-size:11px">'+p.versNr+'</td><td style="color:var(--t2);font-size:11px">'+p.zeitraum+'</td><td class="tr">'+fmt(p.fakt)+'</td><td class="tr '+(p.rest>500?'hi':'lo')+'">'+fmt(p.rest)+'</td><td style="text-align:center">'+mb(p.mahn)+'</td><td style="font-size:11px;color:var(--t2)">'+p.zahlZiel+'</td></tr>';
+        return'<tr><td style="font-weight:500">'+p.patient+'</td><td style="color:var(--t2);font-size:11px">'+p.versNr+'</td><td style="color:var(--t2);font-size:11px">'+p.zeitraum+'</td><td class="tr">'+fmt(p.fakt)+'</td><td class="tr '+(p.rest>500?'hi':'lo')+'">'+fmt(p.rest)+'</td><td style="text-align:center">'+mb(p)+'</td><td style="font-size:11px;color:var(--t2)">'+p.zahlZiel+'</td></tr>';
       }).join('');
+      var pl=prioLabel(g);
+      // Insert section divider when urgency level changes
+      var isUrgentNow=pl.urgent;
+      if(lastUrgent===null){
+        var div=document.createElement('div');
+        div.className='sdiv';
+        div.innerHTML='<div class="sdln"></div><div class="sdlb" style="color:'+(isUrgentNow?'var(--red)':'var(--t2)')+'">'+
+          (isUrgentNow?'\u26a0 Dringend — sofort abarbeiten':'Normal')+'</div><div class="sdln"></div>';
+        list.appendChild(div);
+      } else if(lastUrgent===true&&!isUrgentNow){
+        var div2=document.createElement('div');
+        div2.className='sdiv';
+        div2.style.marginTop='16px';
+        div2.innerHTML='<div class="sdln"></div><div class="sdlb">Normal — nach Dringlichkeit abarbeiten</div><div class="sdln"></div>';
+        list.appendChild(div2);
+      }
+      lastUrgent=isUrgentNow;
       var card=document.createElement('div');
       card.className='kc'+(isDone?' done':'');
       card.innerHTML=
-        '<div class="kh" id="kh_'+gid+'">'+
-          '<div class="kn">'+g.kasse+'<span class="kkto">Kto. '+g.konto+'</span>'+(isDone?' <span class="bg bg-d">Erledigt</span>':'')+'</div>'+
-          '<div class="bgs"><span class="bg bg-n">'+g.posten.length+' Posten</span><span class="bg bg-s">'+fmt(sr)+'</span>'+(maxM==='2'?'<span class="bg bg-m2">M2</span>':'')+(maxM==='1'?'<span class="bg bg-m1">M1</span>':'')+(g.isPriv?'<span class="bg bg-p">Privat</span>':'')+'</div>'+
+        '<div class="kh" id="kh_'+gid+'" style="'+(pl.urgent&&!isDone?'background:#fff8f8':'')+'">'+
+          '<div class="kn">'+
+            '<span class="bg '+pl.cls+'" style="margin-right:8px;font-size:10px">'+pl.label+'</span>'+
+            g.kasse+'<span class="kkto">Kto. '+g.konto+'</span>'+
+            (isDone?' <span class="bg bg-d">Erledigt</span>':'')+
+          '</div>'+
+          '<div class="bgs">'+
+            '<span class="bg bg-n">'+g.posten.length+' Posten</span>'+
+            '<span class="bg bg-s">'+fmt(sr)+'</span>'+
+            (g.posten.some(function(x){return x.isDubiose})?'<span class="bg bg-m2">Dubiose</span>':'')+
+            (g.posten.some(function(x){return x.flagR})?'<span class="bg bg-m1">R</span>':'')+
+            (g.posten.some(function(x){return x.flagX})?'<span class="bg bg-n" style="background:#e6f1fb;color:#0c447c">X</span>':'')+
+          '</div>'+
           '<span class="chv" id="chv_'+gid+'">&#9660;</span>'+
         '</div>'+
         '<div class="kb" id="kb_'+gid+'">'+
           banner+
           '<div style="overflow-x:auto"><table class="ptbl"><thead><tr><th>Patient</th><th>Vers.-Nr.</th><th>Zeitraum</th><th style="text-align:right">Fakt.-Betrag</th><th style="text-align:right">Restbetrag</th><th style="text-align:center">M</th><th>Zahlungsziel</th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr class="tfoot"><td colspan="3">Summe</td><td class="tr">'+fmt(sf)+'</td><td class="tr">'+fmt(sr)+'</td><td colspan="2"></td></tr></tfoot></table></div>'+
           '<div class="nr"><span class="nl">Gesprächsnotiz</span><textarea class="nta" id="nt_'+gid+'" placeholder="Datum, Ansprechpartner, Ergebnis \u2026">'+( onotes[gid]||'')+'</textarea></div>'+
-          '<div class="kf"><button class="db '+(isDone?'done':'')+'" id="db_'+gid+'">'+(isDone?'Erledigt \u2713':'Als erledigt markieren')+'</button>'+
-          '<button class="db" id="faxbtn_'+gid+'" style="color:var(--gold);border-color:var(--gold-bd)">+ Fax erfassen</button></div>'+
+          '<div class="kf"><button class="db '+(isDone?'done':'')+'" id="db_'+gid+'">'+(isDone?'Erledigt \u2713':'Als erledigt markieren')+'</button></div>'+
         '</div>';
       list.appendChild(card);
       (function(g2,gid2){
@@ -1045,9 +1166,6 @@ input[type=file]{display:none}
         el('db_'+gid2).addEventListener('click',function(){
           odone['d_'+g2.konto]=!odone['d_'+g2.konto];renderOpos();
         });
-        el('faxbtn_'+gid2).addEventListener('click',function(){
-          goStep(7);
-        });
       })(g,gid);
     });
   }
@@ -1055,20 +1173,41 @@ input[type=file]{display:none}
   // STEP 4
   var SLABS=['check','act','call','privat','wait','solve'];
   var SLBL={check:'Prüfen',act:'Act',call:'Call',privat:'Privat',wait:'Wait',solve:'Gelöst'};
+  var AZ=['Stornos gutgeschrieben?','Rückbelastungen geprüft?','Lastschriften korrekt?','Auszahlungsbetrag abgeglichen?','Abweichungen dokumentiert?'];
 
   function renderStep4(){
+    // Wire filter pills (only on first render or after re-render)
+    document.querySelectorAll('[data-sf]').forEach(function(btn){
+      btn.onclick=function(){
+        document.querySelectorAll('[data-sf]').forEach(function(b){b.classList.remove('active')});
+        btn.classList.add('active');
+        sfilt=btn.getAttribute('data-sf');
+        renderStep4();
+      };
+    });
+
     var sw=el('stowrap');
     if(!stor.length){
       sw.innerHTML='<div class="ib gold">Keine Storno-Excel hochgeladen — dieser Schritt kann übersprungen werden.</div>';
     } else {
-      var sorted=stor.slice().sort(function(a,b){var pa=storPrioRank(a),pb=storPrioRank(b);if(pa!==pb)return pa-pb;return b.betrag-a.betrag;});
+      // Apply filter
+      var filtered=stor.filter(function(s){
+        if(sfilt==='offen'||sfilt==='nein') return s.gutschrift==='nein';
+        if(sfilt==='vielleicht') return s.gutschrift==='vielleicht';
+        if(sfilt==='ja') return s.gutschrift==='ja';
+        if(sfilt==='rueck') return s.rueckbelastung>0;
+        if(sfilt==='hoch') return s.art>=7;
+        return true; // alle
+      });
+      var sorted=filtered.slice().sort(function(a,b){var pa=storPrioRank(a),pb=storPrioRank(b);if(pa!==pb)return pa-pb;return b.betrag-a.betrag;});
+      var countLabel=filtered.length+' von '+stor.length+' Stornos';
       var rows=sorted.map(function(s){
         var stat=sstat[s.id]||s.status||'check';
         var artCls=s.art>=7?'bg-m2':s.art>=5?'bg-m1':'bg-n';
         var artLabel=s.art>0?'Art '+s.art:'—';
         var gutCls=s.gutschrift==='ja'?'color:var(--teal)':s.gutschrift==='nein'?'color:var(--red);font-weight:500':'color:var(--amb)';
-        var gutLabel=s.gutschrift==='ja'?'Ja ✓':s.gutschrift==='nein'?'Nein ⚠':'Vielleicht';
-        var rueckHtml=s.rueckbelastung>0?'<span style="color:var(--red);font-weight:500">'+fmt(s.rueckbelastung)+'</span>':'<span style="color:var(--t3)">—</span>';
+        var gutLabel=s.gutschrift==='ja'?'Ja \u2713':s.gutschrift==='nein'?'Nein \u26a0':'Vielleicht';
+        var rueckHtml=s.rueckbelastung>0?'<span style="color:var(--red);font-weight:500">'+fmt(s.rueckbelastung)+'</span>':'<span style="color:var(--t3)">\u2014</span>';
         return'<tr style="'+(s.rueckbelastung>0?'background:#fff8f8':'')+'">'+
           '<td style="font-weight:500">'+s.patient+'<br><span style="font-size:10px;color:var(--t3)">'+s.leistungsmonat+'</span></td>'+
           '<td style="font-size:11px;color:var(--t2)">'+s.kasse+'</td>'+
@@ -1083,9 +1222,11 @@ input[type=file]{display:none}
       var rueckGes=stor.reduce(function(s,x){return s+x.rueckbelastung},0);
       sw.innerHTML=
         (rueckGes>0?'<div class="ib red" style="margin-bottom:10px"><strong>Ausstehende Rückbelastungen gesamt: '+fmt(rueckGes)+'</strong> — rot markierte Zeilen sofort prüfen!</div>':'')+
-        '<div style="overflow-x:auto;border:1px solid var(--bd);border-radius:var(--r);overflow:hidden">'+
-        '<table class="stbl"><thead><tr><th>Patient</th><th>Kasse</th><th>Art</th><th>Gutschrift</th><th>Betrag</th><th>Rückbelastung</th><th>Stornogrund</th><th>Status</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
-        '<div class="ib gold" style="margin-top:12px"><strong>Art-Abstufung:</strong> 1–4 = niedrig · 5–6 = mittel · 7–8 = hoch (keine Zahlung erfolgt). &nbsp;<strong>Farbschema:</strong> Act = sofort · Call = Kasse anrufen · Privat = Direktkontakt · Wait = abwarten · Prüfen = unklar · Gelöst = erledigt.<br>Liste bis zum <strong>15. des Monats</strong> an AS Bremen senden.</div>';
+        '<div style="font-size:11px;color:var(--t2);margin-bottom:6px">'+countLabel+'</div>'+
+        (sorted.length===0?'<div class="ib teal">Keine Stornos für diesen Filter.</div>':
+          '<div style="overflow-x:auto;border:1px solid var(--bd);border-radius:var(--r);overflow:hidden">'+
+          '<table class="stbl"><thead><tr><th>Patient</th><th>Kasse</th><th>Art</th><th>Gutschrift</th><th>Betrag</th><th>Rückbelastung</th><th>Stornogrund</th><th>Status</th></tr></thead><tbody>'+rows+'</tbody></table></div>')+
+        '<div class="ib gold" style="margin-top:12px"><strong>Art-Abstufung:</strong> 1\u20134 = niedrig \u00b7 5\u20136 = mittel \u00b7 7\u20138 = hoch. &nbsp;<strong>Farbschema:</strong> Act = sofort \u00b7 Call = Kasse anrufen \u00b7 Privat = Direktkontakt \u00b7 Wait = abwarten \u00b7 Gel\u00f6st = erledigt.<br>Liste bis zum <strong>15. des Monats</strong> an AS Bremen senden.</div>';
       sw.querySelectorAll('.ssel').forEach(function(sel){
         sel.addEventListener('change',function(){sstat[sel.getAttribute('data-id')]=sel.value});
       });
@@ -1188,7 +1329,7 @@ input[type=file]{display:none}
     var now=new Date();
     var dateStr=now.toISOString().slice(0,10);
     var allG=groupKasse(allOpos());
-    var AZ_LBL=['Stornos gutgeschrieben?','Rückbelastungen geprüft?','Lastschriften korrekt?','Auszahlungsbetrag abgeglichen?','Abweichungen dokumentiert?'];
+    var AZ_LBL=AZ;
 
     // Sheet 1: OPOS Kassengespräche
     var oposRows=[['Kasse','Konto','Patient','Vers.-Nr.','Zeitraum','Fakt.-Betrag','Restbetrag','Mahnstufe','Zahlungsziel','Erledigt','Gesprächsnotiz']];
@@ -1290,100 +1431,229 @@ input[type=file]{display:none}
   function exportPdf(isAbschluss){
     var now=new Date();
     var dateStr=now.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});
+    var kwStr='KW '+kw(now)+' / '+now.getFullYear();
     var allG=groupKasse(allOpos());
     var total=allOpos().reduce(function(s,x){return s+x.rest},0);
-    var m2=allOpos().filter(function(x){return x.mahn==='2'}).length;
-    var AZ_LBL=['Stornos gutgeschrieben?','Rückbelastungen geprüft?','Lastschriften korrekt?','Auszahlungsbetrag abgeglichen?','Abweichungen dokumentiert?'];
-    var SLBL={check:'Prüfen',act:'Act',call:'Call',privat:'Privat',wait:'Wait',solve:'Gelöst'};
+    var doneG=allG.filter(function(g){return odone['d_'+g.konto]});
+    var openG=allG.filter(function(g){return!odone['d_'+g.konto]});
+    var m2List=allOpos().filter(function(x){return x.mahn==='2'});
+    var rList=allOpos().filter(function(x){return x.flagR});
+    var storOffen=stor.filter(function(s){return s.gutschrift==='nein'});
+    var SLBL2={check:'Prüfen',act:'Act',call:'Call',privat:'Privat',wait:'Wait',solve:'Gelöst'};
 
-    var html='<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><title>AS-Kassen-Assistent Wochenbericht</title><style>';
-    html+='body{font-family:Arial,sans-serif;font-size:11px;color:#1a1916;margin:24px}';
-    html+='h1{font-size:16px;font-weight:normal;margin-bottom:4px}';
-    html+='.sub{font-size:11px;color:#6b6860;margin-bottom:20px}';
-    html+='h2{font-size:13px;font-weight:bold;margin:20px 0 8px;border-bottom:1px solid #e2ddd4;padding-bottom:4px}';
-    html+='h3{font-size:12px;font-weight:bold;margin:12px 0 4px;color:#0f6e56}';
-    html+='.metrics{display:flex;gap:16px;margin-bottom:16px}';
-    html+='.met{border:1px solid #e2ddd4;border-radius:6px;padding:8px 12px;min-width:100px}';
-    html+='.ml{font-size:9px;text-transform:uppercase;color:#9e9b93;margin-bottom:2px}';
-    html+='.mv{font-size:16px}';
-    html+='table{width:100%;border-collapse:collapse;margin-bottom:12px}';
-    html+='th{text-align:left;padding:5px 7px;font-size:10px;background:#f9f7f3;border-bottom:1px solid #e2ddd4;color:#6b6860}';
-    html+='td{padding:5px 7px;border-bottom:1px solid #e2ddd4;font-size:11px;vertical-align:top}';
-    html+='.notiz{background:#f5edd8;border-left:3px solid #d4a843;padding:5px 8px;margin:4px 0 10px;font-size:11px;color:#7a5c18}';
-    html+='.done{color:#0f6e56;font-weight:bold}.open{color:#854f0b}';
-    html+='.ck{color:#0f6e56}.unk{color:#9e9b93}';
-    html+='@media print{body{margin:12px}h2{page-break-before:auto}}';
-    html+='</style></head><body>';
-    var kwStr='KW '+kw(now)+' / '+now.getFullYear();
-    var pdfTitle=isAbschluss?'Wochenabschluss':'Aktueller Stand';
-    html+='<h1>AS-Kassen-Assistent \u2014 '+pdfTitle+'</h1>';
-    html+='<div class="sub">'+kwStr+' &nbsp;|&nbsp; Erstellt am '+dateStr+' &nbsp;|&nbsp; '+allOpos().length+' Posten &nbsp;|&nbsp; Restbetrag: '+fmt(total)+(isAbschluss?' &nbsp;|&nbsp; <strong>Wochenabschluss</strong>':'')+'</div>';
+    var h='<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8">';
+    h+='<title>AS-Kassen-'+(isAbschluss?'Abschluss':'Stand')+' '+kwStr+'</title><style>';
+    h+='*{box-sizing:border-box;margin:0;padding:0}';
+    h+='body{font-family:Arial,sans-serif;font-size:11px;color:#1a1916;background:#fff;padding:20px}';
+    h+='.header{border-bottom:3px solid #1a1916;padding-bottom:10px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:flex-end}';
+    h+='.header-left h1{font-size:20px;font-weight:bold;letter-spacing:.5px}';
+    h+='.header-left .sub{font-size:11px;color:#6b6860;margin-top:3px}';
+    h+='.header-right{text-align:right;font-size:11px;color:#6b6860}';
+    h+='.badge{display:inline-block;padding:2px 8px;border-radius:3px;font-size:10px;font-weight:bold;text-transform:uppercase;letter-spacing:.5px}';
+    h+='.badge-abschluss{background:#1a1916;color:#fff}';
+    h+='.badge-stand{background:#e2ddd4;color:#6b6860}';
+    // Summary boxes
+    h+='.summary{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:20px}';
+    h+='.sbox{border:1px solid #e2ddd4;border-radius:6px;padding:10px 12px}';
+    h+='.sbox-label{font-size:9px;text-transform:uppercase;color:#9e9b93;margin-bottom:4px;letter-spacing:.5px}';
+    h+='.sbox-val{font-size:18px;font-weight:bold}';
+    h+='.sbox-red .sbox-val{color:#a32d2d}';
+    h+='.sbox-green .sbox-val{color:#0f6e56}';
+    h+='.sbox-orange .sbox-val{color:#854f0b}';
+    // Section headers
+    h+='.sec{font-size:13px;font-weight:bold;text-transform:uppercase;letter-spacing:.8px;color:#6b6860;border-bottom:1px solid #e2ddd4;padding-bottom:5px;margin:20px 0 10px}';
+    h+='.sec-red{color:#a32d2d;border-color:#f0c0c0}';
+    h+='.sec-green{color:#0f6e56;border-color:#b0ddd0}';
+    // Status indicators
+    h+='.tag{display:inline-block;padding:1px 7px;border-radius:3px;font-size:9px;font-weight:bold;text-transform:uppercase}';
+    h+='.tag-offen{background:#fef0e0;color:#854f0b;border:1px solid #f0c88a}';
+    h+='.tag-erledigt{background:#e0f5ee;color:#0f6e56;border:1px solid #8adbc4}';
+    h+='.tag-m2{background:#fde8e8;color:#a32d2d;border:1px solid #f0a0a0}';
+    h+='.tag-m1{background:#fef0e0;color:#854f0b;border:1px solid #f0c88a}';
+    h+='.tag-r{background:#fff3e0;color:#854f0b;border:1px solid #ffc46b}';
+    h+='.tag-dub{background:#fde8e8;color:#a32d2d;border:1px solid #f0a0a0}';
+    // Kasse block
+    h+='.kblock{border:1px solid #e2ddd4;border-radius:6px;margin-bottom:8px;overflow:hidden;page-break-inside:avoid}';
+    h+='.kblock-done{border-color:#b0ddd0;background:#fafffe}';
+    h+='.kblock-open{border-color:#f0c88a}';
+    h+='.kblock-urgent{border-color:#f0a0a0;border-width:2px}';
+    h+='.khead{padding:8px 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}';
+    h+='.khead-done{background:#e0f5ee}';
+    h+='.khead-open{background:#fef8ef}';
+    h+='.khead-urgent{background:#fde8e8}';
+    h+='.kname{font-size:12px;font-weight:bold;flex:1}';
+    h+='.kamt{font-size:12px;font-weight:bold;margin-left:auto}';
+    h+='.kbody{padding:0 12px 8px}';
+    h+='table{width:100%;border-collapse:collapse;margin-top:6px;font-size:10px}';
+    h+='th{text-align:left;padding:4px 6px;background:#f5f2ed;color:#6b6860;font-size:9px;text-transform:uppercase;letter-spacing:.3px}';
+    h+='td{padding:4px 6px;border-bottom:1px solid #f0ede8;vertical-align:top}';
+    h+='tr:last-child td{border-bottom:none}';
+    h+='.tr{text-align:right}';
+    h+='.notiz{background:#fffbf0;border-left:3px solid #d4a843;padding:5px 10px;margin-top:6px;font-size:10px;color:#7a5c18;border-radius:0 4px 4px 0}';
+    h+='.stor-row-open{background:#fff8f8}';
+    h+='.ck{color:#0f6e56;font-weight:bold}';
+    h+='.un{color:#9e9b93}';
+    h+='.alert-box{background:#fde8e8;border:1px solid #f0a0a0;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:11px}';
+    h+='@media print{';
+    h+='  @page{margin:1.5cm;size:A4}';
+    h+='  body{padding:0;font-size:10px}';
+    h+='  .kblock{page-break-inside:avoid}';
+    h+='  .no-print{display:none}';
+    h+='}';
+    h+='</style></head><body>';
 
-    // Metrics
-    var doneC=allG.filter(function(g){return odone['d_'+g.konto]}).length;
-    html+='<div class="metrics">';
-    html+='<div class="met"><div class="ml">Kassengespräche</div><div class="mv">'+doneC+'/'+allG.length+'</div></div>';
-    html+='<div class="met"><div class="ml">Restbetrag</div><div class="mv">'+fmt(total)+'</div></div>';
-    html+='<div class="met"><div class="ml">Mahnstufe 2</div><div class="mv '+(m2>0?'open':'done')+'">'+m2+'</div></div>';
-    html+='<div class="met"><div class="ml">Stornos</div><div class="mv">'+stor.length+'</div></div>';
-    html+='</div>';
+    // ── HEADER ──
+    h+='<div class="header">';
+    h+='<div class="header-left">';
+    h+='<h1>HOMECARE &mdash; AS-Kassen-Assistent</h1>';
+    h+='<div class="sub">'+kwStr+' &nbsp;&nbsp;|&nbsp;&nbsp; Erstellt: '+dateStr+'</div>';
+    h+='</div>';
+    h+='<div class="header-right">';
+    h+='<span class="badge '+(isAbschluss?'badge-abschluss':'badge-stand')+'">'+(isAbschluss?'Wochenabschluss':'Aktueller Stand')+'</span>';
+    h+='</div></div>';
 
-    // OPOS
-    html+='<h2>Kassengespräche</h2>';
-    allG.forEach(function(g,gi){
-      var gid='g'+gi+g.konto;
-      var isDone=!!odone['d_'+g.konto];
-      var note=onotes[gid]||'';
-      var sr=g.posten.reduce(function(s,x){return s+x.rest},0);
-      var maxM=g.posten.some(function(x){return x.mahn==='2'})?'2':g.posten.some(function(x){return x.mahn==='1'})?'1':'0';
-      var prioLabel=g.isPriv?'Privat':maxM==='2'?'Sofort':maxM==='1'?'Hoch':'Normal';
-      html+='<h3>'+g.kasse+' <span style="font-weight:normal;font-size:10px;color:#6b6860">Kto. '+g.konto+' &nbsp;|&nbsp; Priorität: '+prioLabel+'</span>&nbsp;';
-      html+='<span style="font-weight:normal;color:'+(isDone?'#0f6e56':'#854f0b')+'">'+(isDone?'&#10003; Erledigt':'Offen')+'</span></h3>';
-      if(adr.tel||adr.ansp){
-        html+='<div style="font-size:10px;color:#0f6e56;background:#e1f5ee;border-radius:4px;padding:4px 8px;margin-bottom:6px;display:inline-block">';
-        if(adr.tel)html+='\u260e '+adr.tel+'&nbsp;&nbsp;';
-        if(adr.ansp)html+=adr.ansp+'&nbsp;&nbsp;';
-        if(adr.fax)html+='Fax: '+adr.fax+'&nbsp;&nbsp;';
-        if(adr.email)html+=adr.email;
-        html+='</div><br>';
-      }
-      html+='<table><thead><tr><th>Patient</th><th>Vers.-Nr.</th><th>Zeitraum</th><th>Restbetrag</th><th>M</th><th>Zahlungsziel</th></tr></thead><tbody>';
-      g.posten.forEach(function(p){
-        html+='<tr><td>'+p.patient+'</td><td>'+p.versNr+'</td><td>'+p.zeitraum+'</td><td style="font-variant-numeric:tabular-nums;color:'+(p.rest>500?'#a32d2d':'#0f6e56')+'">'+fmt(p.rest)+'</td><td>'+p.mahn+'</td><td>'+p.zahlZiel+'</td></tr>';
-      });
-      html+='</tbody></table>';
-      if(note)html+='<div class="notiz"><strong>Gesprächsnotiz:</strong> '+note.replace(/\n/g,'<br>')+'</div>';
-    });
-
-    // Stornos
-    if(stor.length){
-      html+='<h2>Stornierungen</h2>';
-      html+='<table><thead><tr><th>Patient</th><th>Vers.-Nr.</th><th>Betrag</th><th>Datum</th><th>Status</th></tr></thead><tbody>';
-      stor.forEach(function(s){
-        html+='<tr><td>'+s.patient+'</td><td>'+s.versNr+'</td><td>'+fmt(s.betrag)+'</td><td>'+s.datum+'</td><td>'+(SLBL[sstat[s.id]||'check']||'Prüfen')+'</td></tr>';
-      });
-      html+='</tbody></table>';
+    // ── WARNHINWEIS wenn noch offene dringende Posten ──
+    if(m2List.length>0||rList.length>0){
+      h+='<div class="alert-box">';
+      h+='<strong>⚠ Handlungsbedarf:</strong>';
+      if(m2List.length>0)h+=' &nbsp;'+m2List.length+' Posten auf Mahnstufe 2';
+      if(rList.length>0)h+=' &nbsp;|&nbsp; '+rList.length+' Rückbelastungen (R)';
+      h+='</div>';
     }
 
-    // Checklisten
-    html+='<h2>Checklisten</h2>';
-    html+='<table><thead><tr><th>Bereich</th><th>Aufgabe</th><th>Status</th></tr></thead><tbody>';
-    AZ_LBL.forEach(function(lbl,i){
+    // ── SUMMARY BOXES ──
+    var azDone=AZ.filter(function(_,i){return azck['az'+i]}).length;
+    var vorbDone=VORB.filter(function(v){return vck[v.id]}).length;
+    h+='<div class="summary">';
+    h+='<div class="sbox '+(openG.length>0?'sbox-orange':'sbox-green')+'">';
+    h+='<div class="sbox-label">Kassengespräche</div>';
+    h+='<div class="sbox-val">'+doneG.length+' / '+allG.length+'</div></div>';
+    h+='<div class="sbox"><div class="sbox-label">Restbetrag offen</div>';
+    h+='<div class="sbox-val">'+fmt(total)+'</div></div>';
+    h+='<div class="sbox '+(m2List.length>0?'sbox-red':'sbox-green')+'">';
+    h+='<div class="sbox-label">Mahnstufe 2</div>';
+    h+='<div class="sbox-val">'+m2List.length+'</div></div>';
+    h+='<div class="sbox '+(storOffen.length>0?'sbox-orange':'sbox-green')+'">';
+    h+='<div class="sbox-label">Stornos offen</div>';
+    h+='<div class="sbox-val">'+storOffen.length+'</div></div>';
+    h+='<div class="sbox '+(azDone<AZ.length?'sbox-orange':'sbox-green')+'">';
+    h+='<div class="sbox-label">Checkliste</div>';
+    h+='<div class="sbox-val">'+(azDone+vorbDone)+' / '+(AZ.length+VORB.length)+'</div></div>';
+    h+='</div>';
+
+    // ── KASSENGESPRÄCHE: OFFEN zuerst ──
+    if(openG.length>0){
+      h+='<div class="sec sec-red">&#9888; Kassengespräche — Noch offen ('+openG.length+')</div>';
+      openG.forEach(function(g,gi){
+        var gid='g'+gi+g.konto;
+        var note=onotes[gid]||'';
+        var sr=g.posten.reduce(function(s,x){return s+x.rest},0);
+        var hasM2=g.posten.some(function(x){return x.mahn==='2'});
+        var hasM1=g.posten.some(function(x){return x.mahn==='1'});
+        var hasR=g.posten.some(function(x){return x.flagR});
+        var hasDub=g.posten.some(function(x){return x.isDubiose});
+        var isUrgent=hasM2||hasDub;
+        h+='<div class="kblock '+(isUrgent?'kblock-urgent':'kblock-open')+'">';
+        h+='<div class="khead '+(isUrgent?'khead-urgent':'khead-open')+'">';
+        h+='<span class="kname">'+g.kasse+'</span>';
+        if(hasDub)h+='<span class="tag tag-dub">Dubiose</span>';
+        if(hasM2)h+='<span class="tag tag-m2">M2 &mdash; Sofort!</span>';
+        else if(hasM1)h+='<span class="tag tag-m1">M1</span>';
+        if(hasR)h+='<span class="tag tag-r">R</span>';
+        h+='<span class="tag tag-offen">Offen</span>';
+        h+='<span class="kamt">'+fmt(sr)+'</span>';
+        h+='</div>';
+        h+='<div class="kbody">';
+        h+='<table><thead><tr><th>Patient</th><th>Zeitraum</th><th class="tr">Restbetrag</th><th>M</th><th>Zahlungsziel</th><th>Rechnungsnr.</th></tr></thead><tbody>';
+        g.posten.forEach(function(p){
+          var rowStyle=p.mahn==='2'?'background:#fdf0f0':p.flagR?'background:#fffbf0':'';
+          h+='<tr style="'+rowStyle+'">';
+          h+='<td><strong>'+p.patient+'</strong></td>';
+          h+='<td style="color:#6b6860">'+p.zeitraum+'</td>';
+          h+='<td class="tr" style="font-weight:bold;color:'+(p.mahn==='2'?'#a32d2d':p.rest>500?'#854f0b':'#0f6e56')+'">'+fmt(p.rest)+'</td>';
+          h+='<td>'+(p.mahn==='0'?'&mdash;':'<span style="font-weight:bold;color:'+(p.mahn==='2'?'#a32d2d':'#854f0b')+'">'+p.mahn+'</span>')+(p.flagR?' <span style="color:#854f0b">R</span>':'')+(p.flagX?' <span style="color:#0c447c">X</span>':'')+'</td>';
+          h+='<td style="color:#6b6860">'+p.zahlZiel+'</td>';
+          h+='<td style="color:#9e9b93;font-size:9px">'+p.rechnNr+'</td>';
+          h+='</tr>';
+        });
+        h+='</tbody></table>';
+        if(note)h+='<div class="notiz"><strong>Notiz:</strong> '+note.replace(/\n/g,'<br>')+'</div>';
+        h+='</div></div>';
+      });
+    }
+
+    // ── KASSENGESPRÄCHE: ERLEDIGT ──
+    if(doneG.length>0){
+      h+='<div class="sec sec-green">&#10003; Kassengespräche — Erledigt ('+doneG.length+')</div>';
+      doneG.forEach(function(g,gi){
+        var gid='g'+(gi+openG.length)+g.konto;
+        var note=onotes[gid]||'';
+        var sr=g.posten.reduce(function(s,x){return s+x.rest},0);
+        h+='<div class="kblock kblock-done">';
+        h+='<div class="khead khead-done">';
+        h+='<span class="kname">'+g.kasse+'</span>';
+        h+='<span class="tag tag-erledigt">&#10003; Erledigt</span>';
+        h+='<span class="kamt" style="color:#0f6e56">'+fmt(sr)+'</span>';
+        h+='</div>';
+        if(note){
+          h+='<div class="kbody"><div class="notiz"><strong>Notiz:</strong> '+note.replace(/\n/g,'<br>')+'</div></div>';
+        }
+        h+='</div>';
+      });
+    }
+
+    // ── STORNOS OFFEN ──
+    var storNochOffen=stor.filter(function(s){return s.gutschrift==='nein'});
+    if(storNochOffen.length>0){
+      h+='<div class="sec sec-red">Stornierungen — Offen ('+storNochOffen.length+')</div>';
+      h+='<table><thead><tr><th>Patient</th><th>Kasse</th><th>Art</th><th class="tr">Betrag</th><th class="tr">Rückbel.</th><th>Stornogrund</th><th>Status</th></tr></thead><tbody>';
+      storNochOffen.forEach(function(s){
+        var stat=SLBL2[sstat[s.id]||'check']||'Prüfen';
+        h+='<tr class="stor-row-open">';
+        h+='<td><strong>'+s.patient+'</strong><br><span style="color:#9e9b93;font-size:9px">'+s.leistungsmonat+'</span></td>';
+        h+='<td>'+s.kasse+'</td>';
+        h+='<td><span style="font-size:9px;font-weight:bold;color:'+(s.art>=7?'#a32d2d':s.art>=5?'#854f0b':'#6b6860')+'">'+(s.art>0?'Art '+s.art:'—')+'</span></td>';
+        h+='<td class="tr" style="font-weight:bold">'+fmt(s.betrag)+'</td>';
+        h+='<td class="tr" style="color:'+(s.rueckbelastung>0?'#a32d2d':'#9e9b93')+'">'+(s.rueckbelastung>0?fmt(s.rueckbelastung):'—')+'</td>';
+        h+='<td style="color:#6b6860">'+s.grund+'</td>';
+        h+='<td><span style="font-weight:bold">'+stat+'</span></td>';
+        h+='</tr>';
+      });
+      h+='</tbody></table>';
+    }
+
+    // ── CHECKLISTE ──
+    h+='<div class="sec">Checkliste</div>';
+    h+='<table><thead><tr><th>Aufgabe</th><th>Bereich</th><th>Status</th></tr></thead><tbody>';
+    AZ.forEach(function(lbl,i){
       var ck=!!azck['az'+i];
-      html+='<tr><td>Auszahlungsbelege</td><td>'+lbl+'</td><td class="'+(ck?'ck':'unk')+'">'+(ck?'&#10003; Erledigt':'Offen')+'</td></tr>';
+      h+='<tr><td>'+lbl+'</td><td style="color:#9e9b93">Auszahlungsbelege</td>';
+      h+='<td class="'+(ck?'ck':'un')+'">'+(ck?'&#10003; Erledigt':'&#9711; Offen')+'</td></tr>';
     });
     VORB.forEach(function(v){
       var ck=!!vck[v.id];
-      html+='<tr><td>Vorbereitung</td><td>'+v.ti+'</td><td class="'+(ck?'ck':'unk')+'">'+(ck?'&#10003; Erledigt':'Offen')+'</td></tr>';
+      h+='<tr><td>'+v.ti+'</td><td style="color:#9e9b93">Vorbereitung</td>';
+      h+='<td class="'+(ck?'ck':'un')+'">'+(ck?'&#10003; Erledigt':'&#9711; Offen')+'</td></tr>';
     });
-    html+='</tbody></table>';
-    html+='</body></html>';
+    h+='</tbody></table>';
 
-    var w=window.open('','_blank');
-    if(!w){alert('Bitte Pop-ups für diese Seite erlauben, um das PDF zu öffnen.');return;}
-    w.document.write(html);
-    w.document.close();w.focus();
-    setTimeout(function(){w.print()},700);
+    h+='<div style="margin-top:24px;padding-top:10px;border-top:1px solid #e2ddd4;color:#9e9b93;font-size:9px;display:flex;justify-content:space-between">';
+    h+='<span>HOMECARE &mdash; AS-Kassen-Assistent</span>';
+    h+='<span>'+kwStr+' &nbsp;|&nbsp; '+dateStr+'</span></div>';
+    h+='</body></html>';
+
+    // Download as HTML file (open in browser → Strg+P → Als PDF speichern)
+    var blob=new Blob([h],{type:'text/html;charset=utf-8'});
+    var url=URL.createObjectURL(blob);
+    var kwLabel='KW'+kw(now)+'-'+now.getFullYear();
+    var fname='AS-Kassen-'+(isAbschluss?'Abschluss':'Stand')+'-'+kwLabel+'.html';
+    var a=document.createElement('a');
+    a.href=url;a.download=fname;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    // Also open for printing
+    var w=window.open(url,'_blank');
+    if(w)w.onload=function(){setTimeout(function(){w.print();},600);};
+    setTimeout(function(){URL.revokeObjectURL(url);},60000);
   }
 
   // ── AUTO SUMMARY PDF ─────────────────────────────────────
@@ -1589,10 +1859,11 @@ input[type=file]{display:none}
 
     // Wire up buttons
     el('btn-summary-pdf').onclick=function(){
-      var w=window.open('','_blank');
-      w.document.write(buildSummaryHtml());
-      w.document.close();w.focus();
-      setTimeout(function(){w.print()},700);
+      var blob=new Blob([buildSummaryHtml()],{type:'text/html;charset=utf-8'});
+      var url=URL.createObjectURL(blob);
+      var w=window.open(url,'_blank');
+      if(w)w.onload=function(){setTimeout(function(){w.print();},500);};
+      setTimeout(function(){URL.revokeObjectURL(url);},30000);
     };
     el('btn-summary-reload').onclick=function(){generateSummaryPdf()};
   }
