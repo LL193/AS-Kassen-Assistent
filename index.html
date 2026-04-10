@@ -55,7 +55,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg
 .sti{font-size:19px;color:var(--tx);font-family:Georgia,serif;font-weight:normal;margin-bottom:6px}
 .sde{font-size:13px;color:var(--t2);line-height:1.6;max-width:600px;margin-bottom:22px}
 /* UPLOAD */
-.ugrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+.ugrid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:20px}
 .uc{background:var(--sur);border:1px solid var(--bd);border-radius:var(--r);padding:18px}
 .uct{font-size:13px;font-weight:500;margin-bottom:3px}
 .ucs{font-size:12px;color:var(--t2);margin-bottom:12px}
@@ -227,9 +227,18 @@ input[type=file]{display:none}
       <div class="sti">Dokumente hochladen</div>
       <div class="sde">Lade die wöchentlichen Dokumente aus AS Bremen hoch. Alles wird nur lokal im Browser verarbeitet — nichts wird übertragen.</div>
       <div class="ugrid">
+        <div class="uc" style="border-color:#e8c4c4;background:#fff8f8">
+          <div class="uct" style="color:#a32d2d">OPOS Dubiose <span style="font-size:10px;background:#a32d2d;color:#fff;padding:1px 6px;border-radius:3px;margin-left:4px;vertical-align:middle">Priorität 1</span></div>
+          <div class="ucs" style="font-size:11px;color:var(--t2);line-height:1.7">AS Bremen → Listen → Offene Postenliste<br>→ Dubiose detailliert → <strong>PDF</strong></div>
+          <div class="dz" id="dz-oposd">
+            <div class="dzl" id="dl-oposd"><strong>PDF auswählen</strong><br>oder hierher ziehen</div>
+          </div>
+          <input type="file" id="fi-oposd" accept=".pdf">
+          <div class="ust" id="us-oposd"></div>
+        </div>
         <div class="uc">
-          <div class="uct">OPOS-Liste</div>
-          <div class="ucs">Offene Postenliste aus AS Bremen</div>
+          <div class="uct">OPOS Alle</div>
+          <div class="ucs" style="font-size:11px;color:var(--t2);line-height:1.7">AS Bremen → Listen → Offene Postenliste<br>→ Alle detailliert → <strong>PDF</strong></div>
           <div class="dz" id="dz-opos">
             <div class="dzl" id="dl-opos"><strong>PDF auswählen</strong><br>oder hierher ziehen</div>
           </div>
@@ -238,7 +247,7 @@ input[type=file]{display:none}
         </div>
         <div class="uc">
           <div class="uct">Storno-Liste</div>
-          <div class="ucs">Excel-Export aus heimbas (Stornos_-_FLO.xlsx)</div>
+          <div class="ucs" style="font-size:11px;color:var(--t2);line-height:1.7">Landsberg L-Team → Verwaltungsmanagement<br>→ Storno → Storno FLO → <strong>herunterladen</strong></div>
           <div class="dz" id="dz-storno">
             <div class="dzl" id="dl-storno"><strong>Excel auswählen</strong><br>oder hierher ziehen</div>
           </div>
@@ -247,12 +256,21 @@ input[type=file]{display:none}
         </div>
         <div class="uc">
           <div class="uct">Auszahlungsbelege</div>
-          <div class="ucs">Auszahlungsprotokoll AS Bremen</div>
+          <div class="ucs" style="font-size:11px;color:var(--t2);line-height:1.7">AS Bremen → Belege → Auszahlungsbelege<br>→ letzter Beleg → <strong>PDF</strong></div>
           <div class="dz" id="dz-az">
             <div class="dzl" id="dl-az"><strong>PDF auswählen</strong><br>oder hierher ziehen</div>
           </div>
           <input type="file" id="fi-az" accept=".pdf">
           <div class="ust" id="us-az"></div>
+        </div>
+        <div class="uc" style="border-color:#c8d8e8;background:#f5f9fc">
+          <div class="uct" style="color:#0c447c">Vorwoche-PDF <span style="font-size:10px;background:#0c447c;color:#fff;padding:1px 6px;border-radius:3px;margin-left:4px;vertical-align:middle">Nachhalten</span></div>
+          <div class="ucs" style="font-size:11px;color:var(--t2);line-height:1.7">Teams → Verwaltungsmanagement<br>→ Abschluss-PDF der <strong>Vorwoche</strong> auswählen</div>
+          <div class="dz" id="dz-vw">
+            <div class="dzl" id="dl-vw"><strong>PDF auswählen</strong><br>oder hierher ziehen</div>
+          </div>
+          <input type="file" id="fi-vw" accept=".pdf">
+          <div class="ust" id="us-vw"></div>
         </div>
       </div>
       <div class="ib gold">Mindestens die OPOS-Liste wird benötigt. Storno und Auszahlung können später hinzugefügt werden.</div>
@@ -273,7 +291,7 @@ input[type=file]{display:none}
       <div class="sde">Automatische Auswertung. Rot markierte Bereiche erfordern sofortiges Handeln.</div>
       <div class="mets" id="mets2"></div>
       <div class="sdiv"><div class="sdln"></div><div class="sdlb">Handlungsbedarf diese Woche</div><div class="sdln"></div></div>
-      <div id="prioli"></div>
+      <div id="vw-vergleich"></div><div id="prioli"></div>
       <div class="snav"><button class="bs" id="b2b">← Zurück</button><div class="sp"></div><button class="bn" id="b2n">Weiter: Kassengespräche →</button></div>
     </div>
 
@@ -347,7 +365,8 @@ input[type=file]{display:none}
 <script>
 (function(){
   var PIN='1996';
-  var opos=[],stor=[],azTxt='';
+  var opos=[],oposd=[],stor=[],azTxt='',vwOpos=[];
+  function allOpos(){return oposd.concat(opos);}
   var onotes={},odone={},sstat={},azck={},vck={};
   var ofilt='alle';
   var step=1;
@@ -435,7 +454,7 @@ input[type=file]{display:none}
   el('b4n').addEventListener('click',function(){goStep(5)});
   el('btn-live-pdf').addEventListener('click',function(){exportPdf(false)});
   el('btn-abschluss').addEventListener('click',doWochenabschluss);
-  el('b5r').addEventListener('click',resetWoche);
+  if(el('b5r'))el('b5r').addEventListener('click',resetWoche);
   el('b5b').addEventListener('click',function(){goStep(4)});
   el('btnXlsx').addEventListener('click',exportExcel);
   el('btnPdf').addEventListener('click',exportPdf);
@@ -447,18 +466,21 @@ input[type=file]{display:none}
   el('fi-session').addEventListener('change',function(){if(el('fi-session').files[0])loadSession(el('fi-session').files[0])});
 
   // UPLOAD
-  ['opos','storno','az'].forEach(function(t){
-    var dz=el('dz-'+t);
-    var fi=el('fi-'+t);
-    dz.addEventListener('click',function(){fi.click()});
-    dz.addEventListener('dragover',function(e){e.preventDefault();dz.style.borderColor='var(--gbd)';dz.style.background='var(--gbg)'});
-    dz.addEventListener('dragleave',function(){dz.style.borderColor='';dz.style.background=''});
-    dz.addEventListener('drop',function(e){
-      e.preventDefault();dz.style.borderColor='';dz.style.background='';
-      var f=e.dataTransfer.files[0];
-      if(f&&f.type==='application/pdf')handleFile(f,t);
-    });
-    fi.addEventListener('change',function(){if(fi.files[0])handleFile(fi.files[0],t)});
+  ['oposd','opos','storno','az','vw'].forEach(function(t){
+    (function(type){
+      var dz=el('dz-'+type);
+      var fi=el('fi-'+type);
+      if(!dz||!fi)return;
+      dz.addEventListener('click',function(){fi.click()});
+      dz.addEventListener('dragover',function(e){e.preventDefault();dz.style.borderColor='var(--gbd)';dz.style.background='var(--gbg)'});
+      dz.addEventListener('dragleave',function(){dz.style.borderColor='';dz.style.background=''});
+      dz.addEventListener('drop',function(e){
+        e.preventDefault();dz.style.borderColor='';dz.style.background='';
+        var f=e.dataTransfer.files[0];
+        if(f)handleFile(f,type);
+      });
+      fi.addEventListener('change',function(){if(fi.files[0])handleFile(fi.files[0],type)});
+    })(t);
   });
 
   // Filter pills
@@ -502,13 +524,19 @@ input[type=file]{display:none}
         });
       },Promise.resolve(''));
     }).then(function(text){
-      if(type==='opos'){
-        parseOpos(text);
+      if(type==='oposd'){
+        parseOposInto(text,true);
+        stat.className='ust ok';
+        stat.textContent=oposd.length+' Dubiose-Posten erkannt';
+        setTimeout(function(){generateSummaryPdf();},400);
+      } else if(type==='opos'){
+        parseOposInto(text,false);
         stat.className='ust ok';
         stat.textContent=opos.length+' Posten erkannt';
-        setTimeout(function(){generateSummaryPdf();},400);
+        if(!oposd.length)setTimeout(function(){generateSummaryPdf();},400);
       }
       else if(type==='storno'){parseStor(text);stat.className='ust ok';stat.textContent=stor.length+' Stornos erkannt';}
+      else if(type==='vw'){parseVorwoche(text);stat.className='ust ok';stat.textContent=vwOpos.length+' Vorwoche-Posten eingelesen';}
       else{azTxt=text;stat.className='ust ok';stat.textContent='Belege eingelesen';}
       el('dz-'+type).classList.add('ok');
       lbl.innerHTML='<span style="color:var(--teal)">\u2713 '+file.name+'</span>';
@@ -522,8 +550,9 @@ input[type=file]{display:none}
 
   function checkReady(){opos=opos.filter(function(x){return x.mahn!=='2i'});el('btn1').disabled=opos.length===0}
 
-  function parseOpos(text){
-    opos=[];
+  function parseOposInto(text,isDubiose){
+    var target=isDubiose?oposd:opos;
+    target.length=0;
     var blocks=text.split(/Konto:\s*(\d+)/);
     for(var bi=1;bi<blocks.length;bi+=2){
       var konto=blocks[bi].trim();
@@ -546,7 +575,7 @@ input[type=file]{display:none}
         var mahn=mm?mm[1]:'0';
         if(mahn==='2i')continue; // Inkasso ausblenden
         var srm=chunk.match(/Sammelreferenz:\s*(A\S+)/);
-        opos.push({konto:konto,kasse:kasse,isPriv:isPriv,
+        target.push({konto:konto,kasse:kasse,isPriv:isPriv,isDubiose:isDubiose,
           patient:pm[1].trim(),versNr:pm[2].trim(),
           zeitraum:zm?zm[1]+'\u2013'+zm[2]:'',
           faktDatum:dates[0]||'',zahlZiel:dates[1]||'',
@@ -556,7 +585,92 @@ input[type=file]{display:none}
     }
   }
 
-  // PARSE STORNO from Excel (Stornos_-_FLO.xlsx format)
+  // PARSE VORWOCHE — extracts open items from last week's PDF
+  // Parses the same OPOS format, stores in vwOpos for comparison
+  function parseVorwoche(text){
+    vwOpos=[];
+    var lines=text.split('\n').map(function(l){return l.trim()}).filter(Boolean);
+    var rechnRe=/^(A\d{10,}(?:\s+\d{2})?)\s+(\d{2}\.\d{2}\.\d{4})\s+(\d{2}\.\d{2}\.\d{4})\s+(\d{1,3}(?:\.\d{3})*,\d{2})\s*€\s+(\d{1,3}(?:\.\d{3})*,\d{2})\s*€(.*)$/;
+    var curKonto='',curKasse='',curPatient='',curVersNr='',curZeitraum='';
+    var kontoRe=/^Konto:\s*(\d+)$/;
+    var fallRe=/^1011\s+(\d{5})$/;
+    for(var i=0;i<lines.length;i++){
+      var line=lines[i];
+      var km=line.match(kontoRe);
+      if(km){curKonto=km[1];curKasse=KASSE[curKonto]||'Konto '+curKonto;continue;}
+      if(/^Zwischensumme/.test(line)||/^Offene Postenliste/.test(line)||/^A233 Bezugsdatum/.test(line)||/^Rechnungsnr/.test(line)||/^Beh\.Person/.test(line)||/^M-Privat/.test(line)||/^Legende/.test(line)||/^Summe:/.test(line))continue;
+      if(fallRe.test(line)){
+        if(i+1<lines.length&&!/^\d{2}\.\d{2}/.test(lines[i+1])&&!/^A233/.test(lines[i+1])&&!/^Sammel/.test(lines[i+1]))curKasse=lines[i+1];
+        curPatient='';curVersNr='';curZeitraum='';continue;
+      }
+      if(!curPatient){
+        var pm=line.match(/^(.+),\s*([A-Za-z0-9\/\.\-_]+),?\s*$/);
+        if(pm&&pm[1].length>2&&pm[1].length<50&&/[A-ZÄÖÜ]/.test(pm[1][0])){curPatient=pm[1].trim();curVersNr=pm[2].trim();continue;}
+      }
+      var zm=line.match(/^(\d{2}\.\d{2}\.\d{4})-(\d{2}\.\d{2}\.\d{4})$/);
+      if(zm){curZeitraum=zm[1]+'–'+zm[2];continue;}
+      var rm=line.match(rechnRe);
+      if(rm&&curPatient){
+        var rest=parseFloat(rm[5].replace(/\./g,'').replace(',','.'));
+        var flags=rm[6].trim();
+        var mahn=/\b2i\b/.test(flags)?'2i':/\b2\b/.test(flags)?'2':/\b1\b/.test(flags)?'1':'0';
+        if(mahn==='2i')continue;
+        vwOpos.push({
+          rechnNr:rm[1].replace(/\s+/g,''),
+          konto:curKonto,kasse:curKasse,
+          patient:curPatient,versNr:curVersNr,zeitraum:curZeitraum,
+          rest:rest,mahn:mahn,
+          flagR:/\bR\b/.test(flags),flagX:/\bX\b/.test(flags)
+        });
+        curPatient='';curVersNr='';curZeitraum='';
+      }
+    }
+  }
+
+  // VORWOCHE VERGLEICH — shown in renderStep2 when vwOpos available
+  function renderVorwocheVergleich(){
+    if(!vwOpos.length)return'';
+    var curr=allOpos();
+    // New this week (not in vorwoche by rechnNr)
+    var vwNrs={};
+    vwOpos.forEach(function(p){vwNrs[p.rechnNr]=p;});
+    var currNrs={};
+    curr.forEach(function(p){currNrs[p.rechnNr]=p;});
+    var neu=curr.filter(function(p){return!vwNrs[p.rechnNr]});
+    var weg=vwOpos.filter(function(p){return!currNrs[p.rechnNr]});
+    var geblieben=curr.filter(function(p){return vwNrs[p.rechnNr]});
+    var verschlechtert=geblieben.filter(function(p){
+      var vw=vwNrs[p.rechnNr];
+      return (p.mahn==='2'&&vw.mahn!=='2')||(p.flagR&&!vw.flagR);
+    });
+    var vwTotal=vwOpos.reduce(function(s,x){return s+x.rest},0);
+    var currTotal=curr.reduce(function(s,x){return s+x.rest},0);
+    var diff=currTotal-vwTotal;
+    var diffFmt=(diff>=0?'+':'')+fmt(diff);
+    var diffCls=diff>0?'color:var(--red)':'color:var(--teal)';
+    var h='<div class="sdiv"><div class="sdln"></div><div class="sdlb">Vorwoche-Vergleich</div><div class="sdln"></div></div>';
+    h+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px">';
+    h+='<div class="met"><div class="ml">Gesamt-Änderung</div><div class="mv" style="'+diffCls+'">'+diffFmt+'</div></div>';
+    h+='<div class="met'+(neu.length>0?' al':'')+'"><div class="ml">Neu diese Woche</div><div class="mv">'+neu.length+'</div></div>';
+    h+='<div class="met"><div class="ml">Erledigt / weggefallen</div><div class="mv" style="color:var(--teal)">'+weg.length+'</div></div>';
+    h+='<div class="met'+(verschlechtert.length>0?' al':'')+'"><div class="ml">Verschlechtert</div><div class="mv">'+verschlechtert.length+'</div></div>';
+    h+='</div>';
+    if(verschlechtert.length>0){
+      h+='<div class="ib red" style="margin-bottom:10px"><strong>Verschlechtert seit Vorwoche:</strong> ';
+      h+=verschlechtert.slice(0,5).map(function(p){return p.patient.split(',')[0]+(p.mahn==='2'?' (jetzt M2)':p.flagR?' (jetzt R)':'')}).join(' · ');
+      if(verschlechtert.length>5)h+=' +'+( verschlechtert.length-5)+' weitere';
+      h+='</div>';
+    }
+    if(neu.length>0){
+      h+='<div class="ib teal" style="margin-bottom:10px"><strong>Neu diese Woche ('+neu.length+'):</strong> ';
+      h+=neu.slice(0,5).map(function(p){return p.patient.split(',')[0]+' ('+p.kasse+', '+fmt(p.rest)+')'}).join(' · ');
+      if(neu.length>5)h+=' +'+( neu.length-5)+' weitere';
+      h+='</div>';
+    }
+    return h;
+  }
+
+  // ── PARSE STORNO from Excel (Stornos_-_FLO.xlsx format)
   // Columns (0-based, row 5 = header, data from row 6):
   // 0=Eingang, 1=Rückbelastung am, 2=wann zu AS?, 3=Gutschrift,
   // 4=Kasse, 5=Art(Abstufung), 6=Storno-ID, 7=Rechnungsnummer,
@@ -648,7 +762,92 @@ input[type=file]{display:none}
     reader.readAsArrayBuffer(file);
   }
 
-  // PARSE STORNO from PDF (fallback)
+  // PARSE VORWOCHE — extracts open items from last week's PDF
+  // Parses the same OPOS format, stores in vwOpos for comparison
+  function parseVorwoche(text){
+    vwOpos=[];
+    var lines=text.split('\n').map(function(l){return l.trim()}).filter(Boolean);
+    var rechnRe=/^(A\d{10,}(?:\s+\d{2})?)\s+(\d{2}\.\d{2}\.\d{4})\s+(\d{2}\.\d{2}\.\d{4})\s+(\d{1,3}(?:\.\d{3})*,\d{2})\s*€\s+(\d{1,3}(?:\.\d{3})*,\d{2})\s*€(.*)$/;
+    var curKonto='',curKasse='',curPatient='',curVersNr='',curZeitraum='';
+    var kontoRe=/^Konto:\s*(\d+)$/;
+    var fallRe=/^1011\s+(\d{5})$/;
+    for(var i=0;i<lines.length;i++){
+      var line=lines[i];
+      var km=line.match(kontoRe);
+      if(km){curKonto=km[1];curKasse=KASSE[curKonto]||'Konto '+curKonto;continue;}
+      if(/^Zwischensumme/.test(line)||/^Offene Postenliste/.test(line)||/^A233 Bezugsdatum/.test(line)||/^Rechnungsnr/.test(line)||/^Beh\.Person/.test(line)||/^M-Privat/.test(line)||/^Legende/.test(line)||/^Summe:/.test(line))continue;
+      if(fallRe.test(line)){
+        if(i+1<lines.length&&!/^\d{2}\.\d{2}/.test(lines[i+1])&&!/^A233/.test(lines[i+1])&&!/^Sammel/.test(lines[i+1]))curKasse=lines[i+1];
+        curPatient='';curVersNr='';curZeitraum='';continue;
+      }
+      if(!curPatient){
+        var pm=line.match(/^(.+),\s*([A-Za-z0-9\/\.\-_]+),?\s*$/);
+        if(pm&&pm[1].length>2&&pm[1].length<50&&/[A-ZÄÖÜ]/.test(pm[1][0])){curPatient=pm[1].trim();curVersNr=pm[2].trim();continue;}
+      }
+      var zm=line.match(/^(\d{2}\.\d{2}\.\d{4})-(\d{2}\.\d{2}\.\d{4})$/);
+      if(zm){curZeitraum=zm[1]+'–'+zm[2];continue;}
+      var rm=line.match(rechnRe);
+      if(rm&&curPatient){
+        var rest=parseFloat(rm[5].replace(/\./g,'').replace(',','.'));
+        var flags=rm[6].trim();
+        var mahn=/\b2i\b/.test(flags)?'2i':/\b2\b/.test(flags)?'2':/\b1\b/.test(flags)?'1':'0';
+        if(mahn==='2i')continue;
+        vwOpos.push({
+          rechnNr:rm[1].replace(/\s+/g,''),
+          konto:curKonto,kasse:curKasse,
+          patient:curPatient,versNr:curVersNr,zeitraum:curZeitraum,
+          rest:rest,mahn:mahn,
+          flagR:/\bR\b/.test(flags),flagX:/\bX\b/.test(flags)
+        });
+        curPatient='';curVersNr='';curZeitraum='';
+      }
+    }
+  }
+
+  // VORWOCHE VERGLEICH — shown in renderStep2 when vwOpos available
+  function renderVorwocheVergleich(){
+    if(!vwOpos.length)return'';
+    var curr=allOpos();
+    // New this week (not in vorwoche by rechnNr)
+    var vwNrs={};
+    vwOpos.forEach(function(p){vwNrs[p.rechnNr]=p;});
+    var currNrs={};
+    curr.forEach(function(p){currNrs[p.rechnNr]=p;});
+    var neu=curr.filter(function(p){return!vwNrs[p.rechnNr]});
+    var weg=vwOpos.filter(function(p){return!currNrs[p.rechnNr]});
+    var geblieben=curr.filter(function(p){return vwNrs[p.rechnNr]});
+    var verschlechtert=geblieben.filter(function(p){
+      var vw=vwNrs[p.rechnNr];
+      return (p.mahn==='2'&&vw.mahn!=='2')||(p.flagR&&!vw.flagR);
+    });
+    var vwTotal=vwOpos.reduce(function(s,x){return s+x.rest},0);
+    var currTotal=curr.reduce(function(s,x){return s+x.rest},0);
+    var diff=currTotal-vwTotal;
+    var diffFmt=(diff>=0?'+':'')+fmt(diff);
+    var diffCls=diff>0?'color:var(--red)':'color:var(--teal)';
+    var h='<div class="sdiv"><div class="sdln"></div><div class="sdlb">Vorwoche-Vergleich</div><div class="sdln"></div></div>';
+    h+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px">';
+    h+='<div class="met"><div class="ml">Gesamt-Änderung</div><div class="mv" style="'+diffCls+'">'+diffFmt+'</div></div>';
+    h+='<div class="met'+(neu.length>0?' al':'')+'"><div class="ml">Neu diese Woche</div><div class="mv">'+neu.length+'</div></div>';
+    h+='<div class="met"><div class="ml">Erledigt / weggefallen</div><div class="mv" style="color:var(--teal)">'+weg.length+'</div></div>';
+    h+='<div class="met'+(verschlechtert.length>0?' al':'')+'"><div class="ml">Verschlechtert</div><div class="mv">'+verschlechtert.length+'</div></div>';
+    h+='</div>';
+    if(verschlechtert.length>0){
+      h+='<div class="ib red" style="margin-bottom:10px"><strong>Verschlechtert seit Vorwoche:</strong> ';
+      h+=verschlechtert.slice(0,5).map(function(p){return p.patient.split(',')[0]+(p.mahn==='2'?' (jetzt M2)':p.flagR?' (jetzt R)':'')}).join(' · ');
+      if(verschlechtert.length>5)h+=' +'+( verschlechtert.length-5)+' weitere';
+      h+='</div>';
+    }
+    if(neu.length>0){
+      h+='<div class="ib teal" style="margin-bottom:10px"><strong>Neu diese Woche ('+neu.length+'):</strong> ';
+      h+=neu.slice(0,5).map(function(p){return p.patient.split(',')[0]+' ('+p.kasse+', '+fmt(p.rest)+')'}).join(' · ');
+      if(neu.length>5)h+=' +'+( neu.length-5)+' weitere';
+      h+='</div>';
+    }
+    return h;
+  }
+
+  // ── PARSE STORNO from PDF (fallback)
   function parseStor(text){
     stor=[];
     var lines=text.split('\n').map(function(l){return l.trim()}).filter(Boolean);
@@ -676,10 +875,10 @@ input[type=file]{display:none}
   }
 
   function renderStep2(){
-    var total=opos.reduce(function(s,x){return s+x.rest},0);
-    var m2=opos.filter(function(x){return x.mahn==='2'});
-    var m1=opos.filter(function(x){return x.mahn==='1'});
-    var priv=opos.filter(function(x){return x.isPriv});
+    var total=allOpos().reduce(function(s,x){return s+x.rest},0);
+    var m2=allOpos().filter(function(x){return x.mahn==='2'});
+    var m1=allOpos().filter(function(x){return x.mahn==='1'});
+    var priv=allOpos().filter(function(x){return x.isPriv});
     var dq=total>0?((priv.reduce(function(s,x){return s+x.rest},0)/total)*100):0;
 
     // Storno-Analyse
@@ -751,11 +950,13 @@ input[type=file]{display:none}
       hi:'Prüfen: Stornos gutgeschrieben? Rückbelastungen korrekt verbucht? Lastschriften stimmen?'});
 
     // 9. Größte Kasse
-    var gs=groupKasse(opos);
+    var gs=groupKasse(allOpos());
     if(gs.length)items.push({lv:'teal',ic:'i',
       ti:gs[0].kasse+': '+fmt(gs[0].posten.reduce(function(s,x){return s+x.rest},0))+' offen ('+gs[0].posten.length+' Posten)',
       hi:'Größte Kasse — mit einem Anruf die meiste offene Forderung klären.'});
 
+    var vwHtml=renderVorwocheVergleich();
+    if(vwHtml)el('vw-vergleich').innerHTML=vwHtml;
     var pl=el('prioli');
     pl.innerHTML=items.length?items.map(function(p){
       return'<div class="pitem '+p.lv+'"><div class="picon '+p.lv+'">'+p.ic+'</div><div><div class="pti">'+p.ti+'</div><div class="phi">'+p.hi+'</div></div></div>';
@@ -791,16 +992,16 @@ input[type=file]{display:none}
   }
 
   function renderOpos(){
-    if(!opos.length){el('olist').innerHTML='<div class="emp"><strong>Keine OPOS-Daten</strong>Bitte in Schritt 1 die OPOS-PDF hochladen.</div>';return}
+    if(!allOpos().length){el('olist').innerHTML='<div class="emp"><strong>Keine OPOS-Daten</strong>Bitte in Schritt 1 die OPOS-PDF hochladen.</div>';return}
     var q=(el('osearch').value||'').toLowerCase();
-    var data=opos.slice();
+    var data=allOpos();
     if(ofilt==='m2')data=data.filter(function(x){return x.mahn==='2'});
     if(ofilt==='m1')data=data.filter(function(x){return x.mahn==='1'});
     if(ofilt==='privat')data=data.filter(function(x){return x.isPriv});
     if(ofilt==='offen')data=data.filter(function(x){return!odone['d_'+x.konto]});
     if(q)data=data.filter(function(x){return x.kasse.toLowerCase().indexOf(q)>=0||x.patient.toLowerCase().indexOf(q)>=0||x.versNr.toLowerCase().indexOf(q)>=0});
     var groups=groupKasse(data);
-    var allG=groupKasse(opos);
+    var allG=groupKasse(allOpos());
     var total=data.reduce(function(s,x){return s+x.rest},0);
     var doneC=allG.filter(function(g){return odone['d_'+g.konto]}).length;
     el('ohint').textContent=groups.length+' Kassen \u00b7 '+data.length+' Posten \u00b7 '+fmt(total)+' offen \u00b7 '+doneC+' von '+allG.length+' Anrufe erledigt';
@@ -914,11 +1115,11 @@ input[type=file]{display:none}
   ];
 
   function renderStep5(){
-    var gs=groupKasse(opos);
-    var allG=groupKasse(opos);
+    var gs=groupKasse(allOpos());
+    var allG=groupKasse(allOpos());
     var doneC=allG.filter(function(g){return odone['d_'+g.konto]}).length;
-    var total=opos.reduce(function(s,x){return s+x.rest},0);
-    var m2=opos.filter(function(x){return x.mahn==='2'}).length;
+    var total=allOpos().reduce(function(s,x){return s+x.rest},0);
+    var m2=allOpos().filter(function(x){return x.mahn==='2'}).length;
     var sGel=Object.values(sstat).filter(function(v){return v==='solve'}).length;
     var azD=Object.keys(azck).filter(function(k){return k.indexOf('az')===0&&azck[k]}).length;
     el('wsumm').innerHTML=
@@ -944,7 +1145,7 @@ input[type=file]{display:none}
       version:1,
       savedAt:now.toISOString(),
       weekLabel:'KW '+kw(now)+' '+now.getFullYear(),
-      opos:opos,stor:stor,
+      opos:opos,oposd:oposd,stor:stor,vwOpos:vwOpos,
       onotes:onotes,odone:odone,sstat:sstat,azck:azck,vck:vck
     };
     var blob=new Blob([JSON.stringify(session,null,2)],{type:'application/json'});
@@ -962,7 +1163,7 @@ input[type=file]{display:none}
       try{
         var s=JSON.parse(e.target.result);
         if(!s.version||!s.opos){throw new Error('Ungültiges Format')}
-        opos=s.opos||[];
+        opos=s.opos||[];oposd=s.oposd||[];vwOpos=s.vwOpos||[];
         stor=s.stor||[];
         Object.assign(onotes,s.onotes||{});
         Object.assign(odone,s.odone||{});
@@ -970,10 +1171,10 @@ input[type=file]{display:none}
         Object.assign(azck,s.azck||{});
         Object.assign(vck,s.vck||{});
         stat.className='ust ok';
-        stat.textContent='Session geladen: '+s.weekLabel+' ('+opos.length+' OPOS-Posten)';
+        stat.textContent='Session geladen: '+s.weekLabel+' ('+allOpos().length+' OPOS-Posten)';
         el('dl-session').innerHTML='<span style="color:var(--teal)">\u2713 '+file.name+'</span>';
         el('dz-session').classList.add('ok');
-        el('btn1').disabled=opos.length===0;
+        el('btn1').disabled=allOpos().length===0;
       }catch(err){
         stat.className='ust err';
         stat.textContent='Fehler: Datei konnte nicht geladen werden.';
@@ -986,7 +1187,7 @@ input[type=file]{display:none}
   function exportExcel(){
     var now=new Date();
     var dateStr=now.toISOString().slice(0,10);
-    var allG=groupKasse(opos);
+    var allG=groupKasse(allOpos());
     var AZ_LBL=['Stornos gutgeschrieben?','Rückbelastungen geprüft?','Lastschriften korrekt?','Auszahlungsbetrag abgeglichen?','Abweichungen dokumentiert?'];
 
     // Sheet 1: OPOS Kassengespräche
@@ -1089,9 +1290,9 @@ input[type=file]{display:none}
   function exportPdf(isAbschluss){
     var now=new Date();
     var dateStr=now.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});
-    var allG=groupKasse(opos);
-    var total=opos.reduce(function(s,x){return s+x.rest},0);
-    var m2=opos.filter(function(x){return x.mahn==='2'}).length;
+    var allG=groupKasse(allOpos());
+    var total=allOpos().reduce(function(s,x){return s+x.rest},0);
+    var m2=allOpos().filter(function(x){return x.mahn==='2'}).length;
     var AZ_LBL=['Stornos gutgeschrieben?','Rückbelastungen geprüft?','Lastschriften korrekt?','Auszahlungsbetrag abgeglichen?','Abweichungen dokumentiert?'];
     var SLBL={check:'Prüfen',act:'Act',call:'Call',privat:'Privat',wait:'Wait',solve:'Gelöst'};
 
@@ -1116,7 +1317,7 @@ input[type=file]{display:none}
     var kwStr='KW '+kw(now)+' / '+now.getFullYear();
     var pdfTitle=isAbschluss?'Wochenabschluss':'Aktueller Stand';
     html+='<h1>AS-Kassen-Assistent \u2014 '+pdfTitle+'</h1>';
-    html+='<div class="sub">'+kwStr+' &nbsp;|&nbsp; Erstellt am '+dateStr+' &nbsp;|&nbsp; '+opos.length+' Posten &nbsp;|&nbsp; Restbetrag: '+fmt(total)+(isAbschluss?' &nbsp;|&nbsp; <strong>Wochenabschluss</strong>':'')+'</div>';
+    html+='<div class="sub">'+kwStr+' &nbsp;|&nbsp; Erstellt am '+dateStr+' &nbsp;|&nbsp; '+allOpos().length+' Posten &nbsp;|&nbsp; Restbetrag: '+fmt(total)+(isAbschluss?' &nbsp;|&nbsp; <strong>Wochenabschluss</strong>':'')+'</div>';
 
     // Metrics
     var doneC=allG.filter(function(g){return odone['d_'+g.konto]}).length;
@@ -1187,11 +1388,11 @@ input[type=file]{display:none}
 
   // ── AUTO SUMMARY PDF ─────────────────────────────────────
   function generateSummaryPdf(){
-    if(!opos.length)return;
+    if(!allOpos().length)return;
     var now=new Date();
     var dateStr=now.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});
     var kwStr='KW '+kw(now)+' / '+now.getFullYear();
-    var allG=groupKasse(opos);
+    var allG=groupKasse(allOpos());
     var total=opos.reduce(function(s,x){return s+x.rest},0);
     var m2list=opos.filter(function(x){return x.mahn==='2'});
     var m1list=opos.filter(function(x){return x.mahn==='1'});
@@ -1412,9 +1613,9 @@ input[type=file]{display:none}
   // Returns HTML block of pending faxes for a given kasse — shown in anruf banner
 
   function resetWoche(){
-    opos=[];stor=[];azTxt='';
+    opos=[];oposd=[];stor=[];azTxt='';vwOpos=[];
     [onotes,odone,sstat,azck,vck].forEach(function(o){Object.keys(o).forEach(function(k){delete o[k]})});
-    ['opos','storno','az'].forEach(function(t){
+    ['oposd','opos','storno','az','vw'].forEach(function(t){
       el('dz-'+t).classList.remove('ok');
       el('dl-'+t).innerHTML='<strong>PDF auswählen</strong><br>oder hierher ziehen';
       el('us-'+t).textContent='';
