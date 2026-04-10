@@ -474,17 +474,20 @@ input[type=file]{display:none}
 
   // UPLOAD
   ['opos','storno','az'].forEach(function(t){
-    var dz=el('dz-'+t);
-    var fi=el('fi-'+t);
-    dz.addEventListener('click',function(){fi.click()});
-    dz.addEventListener('dragover',function(e){e.preventDefault();dz.style.borderColor='var(--gbd)';dz.style.background='var(--gbg)'});
-    dz.addEventListener('dragleave',function(){dz.style.borderColor='';dz.style.background=''});
-    dz.addEventListener('drop',function(e){
-      e.preventDefault();dz.style.borderColor='';dz.style.background='';
-      var f=e.dataTransfer.files[0];
-      if(f&&f.type==='application/pdf')handleFile(f,t);
-    });
-    fi.addEventListener('change',function(){if(fi.files[0])handleFile(fi.files[0],t)});
+    (function(type){
+      var dz=el('dz-'+type);
+      var fi=el('fi-'+type);
+      if(!dz||!fi)return;
+      dz.addEventListener('click',function(){fi.click()});
+      dz.addEventListener('dragover',function(e){e.preventDefault();dz.style.borderColor='var(--gbd)';dz.style.background='var(--gbg)'});
+      dz.addEventListener('dragleave',function(){dz.style.borderColor='';dz.style.background=''});
+      dz.addEventListener('drop',function(e){
+        e.preventDefault();dz.style.borderColor='';dz.style.background='';
+        var f=e.dataTransfer.files[0];
+        if(f)handleFile(f,type);
+      });
+      fi.addEventListener('change',function(){if(fi.files[0])handleFile(fi.files[0],type)});
+    })(t);
   });
 
   // Filter pills
