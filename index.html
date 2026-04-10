@@ -341,38 +341,14 @@ input[type=file]{display:none}
       <div class="snav"><button class="bs" id="b5b">← Zurück</button><div class="sp"></div><button class="bn" id="btn-abschluss" style="background:var(--tx);border-color:var(--tx);color:#fff;font-size:14px;padding:11px 28px">Wochenabschluss &amp; PDF erstellen</button></div>
     </div>
 
-    <div class="pg" id="pg7">
-      <div class="sey">Fax-Tracker</div>
-      <div class="sti">Gefaxte Unterlagen & Bewilligungsstatus</div>
-      <div class="sde">Trage ein, was wann an welche Kasse gefaxt wurde. Beim Kassengespräch siehst du sofort welche Anträge noch offen sind und kannst direkt nachfragen.</div>
-      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:flex-end">
-        <button class="bn" id="btn-fax-neu">+ Neuer Eintrag</button>
-        <button class="fpill active" data-fs="alle" id="fs-alle">Alle</button>
-        <button class="fpill" data-fs="offen" id="fs-offen">Ausstehend</button>
-        <button class="fpill" data-fs="bewilligt" id="fs-bewilligt">Bewilligt</button>
-        <button class="fpill" data-fs="abgelehnt" id="fs-abgelehnt">Abgelehnt</button>
-      </div>
-      <div id="fax-neu-form" style="display:none;background:var(--sur);border:1px solid var(--bd);border-radius:var(--r);padding:16px 18px;margin-bottom:14px"></div>
-      <div id="fax-list"></div>
-    </div>
-      <div class="sti">Kassenkontakte</div>
-      <div class="sde">Telefonnummern und Ansprechpartner einmalig eintragen — erscheinen dann in jeder Anrufmappe und im PDF.</div>
-      <div class="ib gold">Daten werden nur lokal im Browser gespeichert. Nach "Neue Woche starten" bleiben sie erhalten.</div>
-      <div id="adr-list"></div>
-      <div class="snav"><div class="sp"></div><button class="bn" id="btn-adr-save">Speichern</button></div>
-    </div>
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
-document.addEventListener("DOMContentLoaded",function(){
 (function(){
   var PIN='1996';
   var opos=[],stor=[],azTxt='';
   var onotes={},odone={},sstat={},azck={},vck={};
-  var adrbuch={}; // {kasse_konto: {tel:'', ansprechpartner:'', fax:''}}
-  var faxEintraege=[]; // [{id, patient, versNr, kasse, konto, typ, datum, status, notiz}]
   var ofilt='alle';
   var step=1;
 
@@ -383,7 +359,6 @@ document.addEventListener("DOMContentLoaded",function(){
     '1740':'Pflegekasse / SVA','1792':'Privat'
   };
   var PRIV=['1711','1721','1792'];
-  var FAX_TYPEN=['§36 Kombileistung / Pflegesachleistung','§39 Verhinderungspflege','§45b Abtretungserklärung','Höherstufungsantrag','Sonstige'];
 
   function fmt(n){return n.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' \u20ac'}
   function el(id){return document.getElementById(id)}
@@ -421,7 +396,7 @@ document.addEventListener("DOMContentLoaded",function(){
   }
 
   // STEPPER
-  var STEPS=[{n:1,l:'Upload'},{n:2,l:'Übersicht'},{n:3,l:'Kassengespräche'},{n:4,l:'Storno & Belege'},{n:5,l:'Abschluss'},{n:6,l:'Adressbuch'},{n:7,l:'Fax-Tracker'}];
+  var STEPS=[{n:1,l:'Upload'},{n:2,l:'Übersicht'},{n:3,l:'Kassengespräche'},{n:4,l:'Storno & Belege'},{n:5,l:'Abschluss'}];
 
   function buildStepper(){
     var bar=el('stepbar');bar.innerHTML='';
@@ -448,8 +423,6 @@ document.addEventListener("DOMContentLoaded",function(){
     if(n===3)renderOpos();
     if(n===4)renderStep4();
     if(n===5)renderStep5();
-    if(n===6)renderAdressbuch();
-    if(n===7)renderFaxTracker();
     window.scrollTo(0,0);
   }
 
@@ -460,7 +433,6 @@ document.addEventListener("DOMContentLoaded",function(){
   el('b3n').addEventListener('click',function(){goStep(4)});
   el('b4b').addEventListener('click',function(){goStep(3)});
   el('b4n').addEventListener('click',function(){goStep(5)});
-  el('btn-adr-save').addEventListener('click',saveAdressbuch);
   el('btn-live-pdf').addEventListener('click',function(){exportPdf(false)});
   el('btn-abschluss').addEventListener('click',doWochenabschluss);
   el('b5r').addEventListener('click',resetWoche);
@@ -476,20 +448,17 @@ document.addEventListener("DOMContentLoaded",function(){
 
   // UPLOAD
   ['opos','storno','az'].forEach(function(t){
-    (function(type){
-      var dz=el('dz-'+type);
-      var fi=el('fi-'+type);
-      if(!dz||!fi)return;
-      dz.addEventListener('click',function(){fi.click()});
-      dz.addEventListener('dragover',function(e){e.preventDefault();dz.style.borderColor='var(--gbd)';dz.style.background='var(--gbg)'});
-      dz.addEventListener('dragleave',function(){dz.style.borderColor='';dz.style.background=''});
-      dz.addEventListener('drop',function(e){
-        e.preventDefault();dz.style.borderColor='';dz.style.background='';
-        var f=e.dataTransfer.files[0];
-        if(f)handleFile(f,type);
-      });
-      fi.addEventListener('change',function(){if(fi.files[0])handleFile(fi.files[0],type)});
-    })(t);
+    var dz=el('dz-'+t);
+    var fi=el('fi-'+t);
+    dz.addEventListener('click',function(){fi.click()});
+    dz.addEventListener('dragover',function(e){e.preventDefault();dz.style.borderColor='var(--gbd)';dz.style.background='var(--gbg)'});
+    dz.addEventListener('dragleave',function(){dz.style.borderColor='';dz.style.background=''});
+    dz.addEventListener('drop',function(e){
+      e.preventDefault();dz.style.borderColor='';dz.style.background='';
+      var f=e.dataTransfer.files[0];
+      if(f&&f.type==='application/pdf')handleFile(f,t);
+    });
+    fi.addEventListener('change',function(){if(fi.files[0])handleFile(fi.files[0],t)});
   });
 
   // Filter pills
@@ -844,10 +813,9 @@ document.addEventListener("DOMContentLoaded",function(){
       var isDone=!!odone['d_'+g.konto];
       var pats=Array.from(new Set(g.posten.map(function(p){return p.patient})));
       var refs=Array.from(new Set(g.posten.map(function(p){return p.ref}).filter(Boolean)));
-      var faxSect=faxBlockForKasse(g.kasse,g.konto);
       var banner=g.isPriv
-        ?'<div class="ab p"><strong>Hinweis Privat:</strong> Direktkontakt notwendig \u2014 Kasse hat keinen Zugriff.<br>'+g.posten.length+' Rechnung'+(g.posten.length>1?'en':'')+' \u00b7 Gesamt: <strong>'+fmt(sr)+'</strong></div>'+faxSect
-        :'<div class="ab k"><strong>Gesprächsvorbereitung:</strong> '+pats.length+' Patient'+(pats.length>1?'en':'')+' \u2014 '+pats.join(', ')+'<br>Offener Gesamtbetrag: <strong>'+fmt(sr)+'</strong>'+(refs.length?' \u00b7 Sammelreferenzen: '+refs.join(', '):'')+(adrbuch[adrKey(g.kasse,g.konto)]&&adrbuch[adrKey(g.kasse,g.konto)].tel?'<br>\u260e <strong>'+adrbuch[adrKey(g.kasse,g.konto)].tel+'</strong>'+(adrbuch[adrKey(g.kasse,g.konto)].ansp?' \u00b7 '+adrbuch[adrKey(g.kasse,g.konto)].ansp:''):'')+'</div>'+faxSect;
+        ?'<div class="ab p"><strong>Hinweis Privat:</strong> Direktkontakt notwendig \u2014 Kasse hat keinen Zugriff.<br>'+g.posten.length+' Rechnung'+(g.posten.length>1?'en':'')+' \u00b7 Gesamt: <strong>'+fmt(sr)+'</strong></div>'
+        :'<div class="ab k"><strong>Gesprächsvorbereitung:</strong> '+pats.length+' Patient'+(pats.length>1?'en':'')+' \u2014 '+pats.join(', ')+'<br>Offener Gesamtbetrag: <strong>'+fmt(sr)+'</strong>'+(refs.length?' \u00b7 Sammelreferenzen: '+refs.join(', '):'')+'</div>';
       var rows=g.posten.map(function(p){
         return'<tr><td style="font-weight:500">'+p.patient+'</td><td style="color:var(--t2);font-size:11px">'+p.versNr+'</td><td style="color:var(--t2);font-size:11px">'+p.zeitraum+'</td><td class="tr">'+fmt(p.fakt)+'</td><td class="tr '+(p.rest>500?'hi':'lo')+'">'+fmt(p.rest)+'</td><td style="text-align:center">'+mb(p.mahn)+'</td><td style="font-size:11px;color:var(--t2)">'+p.zahlZiel+'</td></tr>';
       }).join('');
@@ -878,7 +846,6 @@ document.addEventListener("DOMContentLoaded",function(){
         });
         el('faxbtn_'+gid2).addEventListener('click',function(){
           goStep(7);
-          setTimeout(function(){showFaxForm(g2.kasse,pats[0],g2.posten[0]&&g2.posten[0].versNr||'')},100);
         });
       })(g,gid);
     });
@@ -978,8 +945,7 @@ document.addEventListener("DOMContentLoaded",function(){
       savedAt:now.toISOString(),
       weekLabel:'KW '+kw(now)+' '+now.getFullYear(),
       opos:opos,stor:stor,
-      onotes:onotes,odone:odone,sstat:sstat,azck:azck,vck:vck,
-      adrbuch:adrbuch,faxEintraege:faxEintraege
+      onotes:onotes,odone:odone,sstat:sstat,azck:azck,vck:vck
     };
     var blob=new Blob([JSON.stringify(session,null,2)],{type:'application/json'});
     var a=document.createElement('a');
@@ -1003,8 +969,6 @@ document.addEventListener("DOMContentLoaded",function(){
         Object.assign(sstat,s.sstat||{});
         Object.assign(azck,s.azck||{});
         Object.assign(vck,s.vck||{});
-        Object.assign(adrbuch,s.adrbuch||{});
-        if(s.faxEintraege)faxEintraege=s.faxEintraege;
         stat.className='ust ok';
         stat.textContent='Session geladen: '+s.weekLabel+' ('+opos.length+' OPOS-Posten)';
         el('dl-session').innerHTML='<span style="color:var(--teal)">\u2713 '+file.name+'</span>';
@@ -1170,7 +1134,6 @@ document.addEventListener("DOMContentLoaded",function(){
       var isDone=!!odone['d_'+g.konto];
       var note=onotes[gid]||'';
       var sr=g.posten.reduce(function(s,x){return s+x.rest},0);
-      var adr=adrbuch[adrKey(g.kasse,g.konto)]||{};
       var maxM=g.posten.some(function(x){return x.mahn==='2'})?'2':g.posten.some(function(x){return x.mahn==='1'})?'1':'0';
       var prioLabel=g.isPriv?'Privat':maxM==='2'?'Sofort':maxM==='1'?'Hoch':'Normal';
       html+='<h3>'+g.kasse+' <span style="font-weight:normal;font-size:10px;color:#6b6860">Kto. '+g.konto+' &nbsp;|&nbsp; Priorität: '+prioLabel+'</span>&nbsp;';
@@ -1213,20 +1176,6 @@ document.addEventListener("DOMContentLoaded",function(){
       html+='<tr><td>Vorbereitung</td><td>'+v.ti+'</td><td class="'+(ck?'ck':'unk')+'">'+(ck?'&#10003; Erledigt':'Offen')+'</td></tr>';
     });
     html+='</tbody></table>';
-
-    // Fax-Tracker
-    if(faxEintraege.length){
-      html+='<h2>Fax-Tracker \u2014 Anträge & Bewilligungsstatus</h2>';
-      html+='<table><thead><tr><th>Patient</th><th>Vers.-Nr.</th><th>Kasse</th><th>Dokumenttyp</th><th>Faxdatum</th><th>Status</th></tr></thead><tbody>';
-      var sortedFax=faxEintraege.slice().sort(function(a,b){return b.datum.localeCompare(a.datum)});
-      sortedFax.forEach(function(e){
-        var statColor=e.status==='bewilligt'?'#0f6e56':e.status==='abgelehnt'?'#a32d2d':'#854f0b';
-        var statLbl=e.status==='bewilligt'?'Bewilligt \u2713':e.status==='abgelehnt'?'Abgelehnt':'Ausstehend';
-        html+='<tr><td style="font-weight:bold">'+e.patient+'</td><td style="color:#6b6860">'+e.versNr+'</td><td>'+e.kasse+'</td><td>'+e.typ+'</td><td>'+fmtDate(e.datum)+'</td><td style="font-weight:bold;color:'+statColor+'">'+statLbl+'</td></tr>';
-      });
-      html+='</tbody></table>';
-    }
-
     html+='</body></html>';
 
     var w=window.open('','_blank');
@@ -1457,230 +1406,14 @@ document.addEventListener("DOMContentLoaded",function(){
     {kasse:'Pflegekasse / SVA',konto:'1740'},
   ];
 
-  function adrKey(kasse,konto){return kasse+'|'+konto}
-
-  function renderAdressbuch(){
-    // Merge known kassen with any from current opos
-    var allKassen=BEKANNTE_KASSEN.slice();
-    groupKasse(opos).forEach(function(g){
-      if(g.isPriv)return;
-      var exists=allKassen.some(function(k){return k.konto===g.konto});
-      if(!exists)allKassen.push({kasse:g.kasse,konto:g.konto});
-    });
-
-    var html=allKassen.map(function(k){
-      var key=adrKey(k.kasse,k.konto);
-      var a=adrbuch[key]||{tel:'',ansp:'',fax:'',email:''};
-      return'<div class="uc" style="margin-bottom:10px">'+
-        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'+
-          '<div style="font-size:13px;font-weight:500;flex:1">'+k.kasse+'</div>'+
-          '<span style="font-size:11px;color:var(--t3)">Kto. '+k.konto+'</span>'+
-        '</div>'+
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+
-          '<div><div style="font-size:11px;color:var(--t3);margin-bottom:3px">Telefon Abrechnung</div>'+
-            '<input type="text" class="adr-inp" data-key="'+key+'" data-field="tel" value="'+( a.tel||'')+'" placeholder="z.B. 089 123456-0" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:var(--rs);font-size:12px;background:var(--sur);color:var(--tx);outline:none"></div>'+
-          '<div><div style="font-size:11px;color:var(--t3);margin-bottom:3px">Ansprechpartner</div>'+
-            '<input type="text" class="adr-inp" data-key="'+key+'" data-field="ansp" value="'+(a.ansp||'')+'" placeholder="Name, Abt." style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:var(--rs);font-size:12px;background:var(--sur);color:var(--tx);outline:none"></div>'+
-          '<div><div style="font-size:11px;color:var(--t3);margin-bottom:3px">Fax</div>'+
-            '<input type="text" class="adr-inp" data-key="'+key+'" data-field="fax" value="'+(a.fax||'')+'" placeholder="Fax-Nummer" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:var(--rs);font-size:12px;background:var(--sur);color:var(--tx);outline:none"></div>'+
-          '<div><div style="font-size:11px;color:var(--t3);margin-bottom:3px">E-Mail</div>'+
-            '<input type="text" class="adr-inp" data-key="'+key+'" data-field="email" value="'+(a.email||'')+'" placeholder="abrechnung@kasse.de" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:var(--rs);font-size:12px;background:var(--sur);color:var(--tx);outline:none"></div>'+
-        '</div>'+
-      '</div>';
-    }).join('');
-    el('adr-list').innerHTML=html;
-  }
-
-  function saveAdressbuch(){
-    document.querySelectorAll('.adr-inp').forEach(function(inp){
-      var key=inp.getAttribute('data-key');
-      var field=inp.getAttribute('data-field');
-      if(!adrbuch[key])adrbuch[key]={tel:'',ansp:'',fax:'',email:''};
-      adrbuch[key][field]=inp.value.trim();
-    });
-    var btn=el('btn-adr-save');
-    btn.textContent='Gespeichert \u2713';
-    btn.style.background='var(--teal)';btn.style.borderColor='var(--teal)';btn.style.color='#fff';
-    setTimeout(function(){btn.textContent='Speichern';btn.style.background='';btn.style.borderColor='';btn.style.color='';},1800);
-  }
-
-  function adrBadge(kasse,konto){
-    var a=adrbuch[adrKey(kasse,konto)];
-    if(!a||(!a.tel&&!a.ansp))return'';
-    var parts=[];
-    if(a.tel)parts.push('\u260e '+a.tel);
-    if(a.ansp)parts.push(a.ansp);
-    return'<div style="font-size:11px;color:var(--teal);background:var(--tbg);border-radius:4px;padding:3px 8px;margin-left:8px;display:inline-block">'+parts.join(' \u00b7 ')+'</div>';
-  }
-
   // ── FAX TRACKER ──────────────────────────────────────────
   var faxFilter='alle';
 
-  function faxId(){return 'f'+Date.now()+Math.random().toString(36).slice(2,6)}
-
-  function renderFaxTracker(){
-    // filter buttons
-    ['alle','offen','bewilligt','abgelehnt'].forEach(function(f){
-      var btn=el('fs-'+f);
-      if(btn){
-        btn.className='fpill'+(faxFilter===f?' active':'');
-        btn.onclick=function(){faxFilter=f;renderFaxTracker()};
-      }
-    });
-
-    var filtered=faxEintraege.filter(function(e){
-      return faxFilter==='alle'||e.status===faxFilter;
-    });
-    filtered.sort(function(a,b){return b.datum.localeCompare(a.datum)});
-
-    var list=el('fax-list');
-    if(!filtered.length){
-      list.innerHTML='<div class="emp"><strong>Noch keine Einträge</strong>Klicke "+ Neuer Eintrag" um einen Fax-Versand zu erfassen.</div>';
-    } else {
-      list.innerHTML=filtered.map(function(e){
-        var statCls=e.status==='bewilligt'?'ft-b':e.status==='abgelehnt'?'ft-a':'ft-o';
-        var statLbl=e.status==='bewilligt'?'Bewilligt':e.status==='abgelehnt'?'Abgelehnt':'Ausstehend';
-        return'<div class="fax-item '+e.status+'">'+
-          '<div>'+
-            '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'+
-              '<span style="font-size:13px;font-weight:500">'+e.patient+'</span>'+
-              '<span style="font-size:11px;color:var(--t3)">'+e.versNr+'</span>'+
-              '<span class="fax-tag '+statCls+'">'+statLbl+'</span>'+
-            '</div>'+
-            '<div style="font-size:12px;color:var(--t2);margin-bottom:3px">'+e.typ+' &nbsp;&middot;&nbsp; '+e.kasse+'</div>'+
-            '<div style="font-size:11px;color:var(--t3)">Gefaxt am: <strong style="color:var(--tx)">'+fmtDate(e.datum)+'</strong>'+(e.notiz?' &nbsp;&middot;&nbsp; '+e.notiz:'')+'</div>'+
-          '</div>'+
-          '<div style="display:flex;gap:6px;align-items:center">'+
-            (e.status!=='bewilligt'?'<button class="db" onclick="setFaxStatus(\''+e.id+'\',\'bewilligt\')">Bewilligt</button>':'')+
-            (e.status!=='abgelehnt'?'<button class="db" style="color:var(--red);border-color:var(--rbd)" onclick="setFaxStatus(\''+e.id+'\',\'abgelehnt\')">Abgelehnt</button>':'')+
-            (e.status!=='offen'?'<button class="db" onclick="setFaxStatus(\''+e.id+'\',\'offen\')">Zurücksetzen</button>':'')+
-            '<button class="db" style="color:var(--red)" onclick="delFax(\''+e.id+'\')">&#10005;</button>'+
-          '</div>'+
-        '</div>';
-      }).join('');
-    }
-
-    // New entry form button
-    el('btn-fax-neu').onclick=function(){showFaxForm()};
-  }
-
-  function fmtDate(iso){
-    if(!iso)return'';
-    var p=iso.split('-');
-    return p[2]+'.'+p[1]+'.'+p[0];
-  }
-
-  function showFaxForm(prefillKasse,prefillPatient,prefillVersNr){
-    var allG=groupKasse(opos);
-    var kasseOptions=allG.map(function(g){
-      return'<option value="'+g.kasse+'|'+g.konto+'">'+g.kasse+' (Kto. '+g.konto+')</option>';
-    }).join('');
-    // Collect all patients
-    var patOptions=Array.from(new Set(opos.map(function(p){return p.patient+'|'+p.versNr}))).map(function(s){
-      var parts=s.split('|');
-      return'<option value="'+s+'">'+parts[0]+'</option>';
-    }).join('');
-
-    var today=new Date().toISOString().slice(0,10);
-    var f=el('fax-neu-form');
-    f.style.display='block';
-    f.innerHTML=
-      '<div style="font-size:13px;font-weight:500;margin-bottom:12px">Neuer Fax-Eintrag</div>'+
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">'+
-        '<div><div style="font-size:11px;color:var(--t3);margin-bottom:3px">Patient</div>'+
-          '<input id="fneu-pat" type="text" value="'+(prefillPatient||'')+'" placeholder="Name des Patienten" list="fneu-patlist" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:var(--rs);font-size:12px;background:var(--sur);color:var(--tx);outline:none">'+
-          '<datalist id="fneu-patlist">'+patOptions+'</datalist></div>'+
-        '<div><div style="font-size:11px;color:var(--t3);margin-bottom:3px">Vers.-Nr.</div>'+
-          '<input id="fneu-vers" type="text" value="'+(prefillVersNr||'')+'" placeholder="Versichertennummer" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:var(--rs);font-size:12px;background:var(--sur);color:var(--tx);outline:none"></div>'+
-        '<div><div style="font-size:11px;color:var(--t3);margin-bottom:3px">Kasse</div>'+
-          '<select id="fneu-kasse" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:var(--rs);font-size:12px;background:var(--sur);color:var(--tx);outline:none">'+
-          '<option value="">-- Kasse wählen --</option>'+kasseOptions+'</select></div>'+
-        '<div><div style="font-size:11px;color:var(--t3);margin-bottom:3px">Dokumenttyp</div>'+
-          '<select id="fneu-typ" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:var(--rs);font-size:12px;background:var(--sur);color:var(--tx);outline:none">'+
-          FAX_TYPEN.map(function(t){return'<option>'+t+'</option>'}).join('')+'</select></div>'+
-        '<div><div style="font-size:11px;color:var(--t3);margin-bottom:3px">Faxdatum</div>'+
-          '<input id="fneu-dat" type="date" value="'+today+'" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:var(--rs);font-size:12px;background:var(--sur);color:var(--tx);outline:none"></div>'+
-        '<div><div style="font-size:11px;color:var(--t3);margin-bottom:3px">Notiz (optional)</div>'+
-          '<input id="fneu-notiz" type="text" placeholder="z.B. inkl. Fax-Nachweis" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:var(--rs);font-size:12px;background:var(--sur);color:var(--tx);outline:none"></div>'+
-      '</div>'+
-      '<div style="display:flex;gap:8px">'+
-        '<button class="bn" onclick="saveFaxNeu()">Eintrag speichern</button>'+
-        '<button class="bs" onclick="el(\'fax-neu-form\').style.display=\'none\'">Abbrechen</button>'+
-      '</div>';
-    // prefill kasse
-    if(prefillKasse){
-      var sel=el('fneu-kasse');
-      for(var i=0;i<sel.options.length;i++){
-        if(sel.options[i].value.indexOf(prefillKasse)===0){sel.selectedIndex=i;break}
-      }
-    }
-    // auto-fill versNr from patient datalist selection
-    el('fneu-pat').addEventListener('change',function(){
-      var val=this.value;
-      var match=opos.find(function(p){return p.patient===val});
-      if(match)el('fneu-vers').value=match.versNr;
-    });
-    f.scrollIntoView({behavior:'smooth',block:'nearest'});
-  }
-
-  function saveFaxNeu(){
-    var pat=el('fneu-pat').value.trim();
-    var vers=el('fneu-vers').value.trim();
-    var kasseVal=el('fneu-kasse').value;
-    var typ=el('fneu-typ').value;
-    var dat=el('fneu-dat').value;
-    if(!pat||!kasseVal||!dat){
-      alert('Patient, Kasse und Datum sind Pflichtfelder.');return;
-    }
-    var kasseParts=kasseVal.split('|');
-    faxEintraege.push({
-      id:faxId(),patient:pat,versNr:vers,
-      kasse:kasseParts[0],konto:kasseParts[1]||'',
-      typ:typ,datum:dat,
-      status:'offen',
-      notiz:el('fneu-notiz').value.trim()
-    });
-    el('fax-neu-form').style.display='none';
-    renderFaxTracker();
-  }
-
-  function setFaxStatus(id,status){
-    var e=faxEintraege.find(function(x){return x.id===id});
-    if(e){e.status=status;renderFaxTracker();}
-  }
-
-  function delFax(id){
-    faxEintraege=faxEintraege.filter(function(x){return x.id!==id});
-    renderFaxTracker();
-  }
-
   // Returns HTML block of pending faxes for a given kasse — shown in anruf banner
-  function faxBlockForKasse(kasse,konto){
-    var relevant=faxEintraege.filter(function(e){
-      return e.kasse===kasse&&(e.konto===konto||!e.konto);
-    });
-    if(!relevant.length)return'';
-    var html='<div class="fax-block">'+
-      '<div class="fax-block-title">Offene Anträge / Fax-Nachverfolgung</div>';
-    relevant.forEach(function(e){
-      var dotCls=e.status==='bewilligt'?'fsd-b':e.status==='abgelehnt'?'fsd-a':'fsd-o';
-      var statLbl=e.status==='bewilligt'?'Bewilligt':e.status==='abgelehnt'?'Abgelehnt':'Ausstehend \u2014 nachfragen!';
-      html+='<div class="fax-row">'+
-        '<div class="fax-status-dot '+dotCls+'"></div>'+
-        '<span style="font-weight:500;flex:1">'+e.patient+'</span>'+
-        '<span style="color:var(--t2)">'+e.typ+'</span>'+
-        '<span style="color:var(--t3);margin-left:8px">Fax '+fmtDate(e.datum)+'</span>'+
-        '<span style="margin-left:8px;font-size:11px;color:'+(e.status==='offen'?'var(--amb)':e.status==='bewilligt'?'var(--teal)':'var(--red)')+'">'+statLbl+'</span>'+
-      '</div>';
-    });
-    html+='</div>';
-    return html;
-  }
 
   function resetWoche(){
     opos=[];stor=[];azTxt='';
     [onotes,odone,sstat,azck,vck].forEach(function(o){Object.keys(o).forEach(function(k){delete o[k]})});
-    // adrbuch und faxEintraege bleiben über Wochen erhalten
     ['opos','storno','az'].forEach(function(t){
       el('dz-'+t).classList.remove('ok');
       el('dl-'+t).innerHTML='<strong>PDF auswählen</strong><br>oder hierher ziehen';
@@ -1691,8 +1424,7 @@ document.addEventListener("DOMContentLoaded",function(){
   }
 
 })();
-}); // DOMContentLoaded
 </script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </body>
 </html>
