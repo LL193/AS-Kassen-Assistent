@@ -55,7 +55,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg
 .sti{font-size:19px;color:var(--tx);font-family:Georgia,serif;font-weight:normal;margin-bottom:6px}
 .sde{font-size:13px;color:var(--t2);line-height:1.6;max-width:600px;margin-bottom:22px}
 /* UPLOAD */
-.ugrid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:20px}
+.ugrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
 .uc{background:var(--sur);border:1px solid var(--bd);border-radius:var(--r);padding:18px}
 .uct{font-size:13px;font-weight:500;margin-bottom:3px}
 .ucs{font-size:12px;color:var(--t2);margin-bottom:12px}
@@ -227,18 +227,9 @@ input[type=file]{display:none}
       <div class="sti">Dokumente hochladen</div>
       <div class="sde">Lade die wöchentlichen Dokumente aus AS Bremen hoch. Alles wird nur lokal im Browser verarbeitet — nichts wird übertragen.</div>
       <div class="ugrid">
-        <div class="uc" style="border-color:#e8c4c4;background:#fff8f8">
-          <div class="uct" style="color:#a32d2d">OPOS Dubiose <span style="font-size:10px;background:#a32d2d;color:#fff;padding:1px 6px;border-radius:3px;margin-left:4px;vertical-align:middle">Priorität 1</span></div>
-          <div class="ucs" style="font-size:11px;color:var(--t2);line-height:1.7">AS Bremen → Listen → Offene Postenliste<br>→ Dubiose detailliert → <strong>PDF</strong></div>
-          <div class="dz" id="dz-oposd">
-            <div class="dzl" id="dl-oposd"><strong>PDF auswählen</strong><br>oder hierher ziehen</div>
-          </div>
-          <input type="file" id="fi-oposd" accept=".pdf">
-          <div class="ust" id="us-oposd"></div>
-        </div>
         <div class="uc">
-          <div class="uct">OPOS Alle</div>
-          <div class="ucs" style="font-size:11px;color:var(--t2);line-height:1.7">AS Bremen → Listen → Offene Postenliste<br>→ Alle detailliert → <strong>PDF</strong></div>
+          <div class="uct">OPOS-Liste</div>
+          <div class="ucs">Offene Postenliste aus AS Bremen</div>
           <div class="dz" id="dz-opos">
             <div class="dzl" id="dl-opos"><strong>PDF auswählen</strong><br>oder hierher ziehen</div>
           </div>
@@ -247,7 +238,7 @@ input[type=file]{display:none}
         </div>
         <div class="uc">
           <div class="uct">Storno-Liste</div>
-          <div class="ucs" style="font-size:11px;color:var(--t2);line-height:1.7">Landsberg L-Team → Verwaltungsmanagement<br>→ Storno → Storno FLO → <strong>herunterladen</strong></div>
+          <div class="ucs">Excel-Export aus heimbas (Stornos_-_FLO.xlsx)</div>
           <div class="dz" id="dz-storno">
             <div class="dzl" id="dl-storno"><strong>Excel auswählen</strong><br>oder hierher ziehen</div>
           </div>
@@ -256,21 +247,12 @@ input[type=file]{display:none}
         </div>
         <div class="uc">
           <div class="uct">Auszahlungsbelege</div>
-          <div class="ucs" style="font-size:11px;color:var(--t2);line-height:1.7">AS Bremen → Belege → Auszahlungsbelege<br>→ letzter Beleg → <strong>PDF</strong></div>
+          <div class="ucs">Auszahlungsprotokoll AS Bremen</div>
           <div class="dz" id="dz-az">
             <div class="dzl" id="dl-az"><strong>PDF auswählen</strong><br>oder hierher ziehen</div>
           </div>
           <input type="file" id="fi-az" accept=".pdf">
           <div class="ust" id="us-az"></div>
-        </div>
-        <div class="uc" style="border-color:#c8d8e8;background:#f5f9fc">
-          <div class="uct" style="color:#0c447c">Vorwoche-PDF <span style="font-size:10px;background:#0c447c;color:#fff;padding:1px 6px;border-radius:3px;margin-left:4px;vertical-align:middle">Nachhalten</span></div>
-          <div class="ucs" style="font-size:11px;color:var(--t2);line-height:1.7">Teams → Verwaltungsmanagement<br>→ Abschluss-PDF der <strong>Vorwoche</strong> auswählen</div>
-          <div class="dz" id="dz-vw">
-            <div class="dzl" id="dl-vw"><strong>PDF auswählen</strong><br>oder hierher ziehen</div>
-          </div>
-          <input type="file" id="fi-vw" accept=".pdf">
-          <div class="ust" id="us-vw"></div>
         </div>
       </div>
       <div class="ib gold">Mindestens die OPOS-Liste wird benötigt. Storno und Auszahlung können später hinzugefügt werden.</div>
@@ -291,7 +273,7 @@ input[type=file]{display:none}
       <div class="sde">Automatische Auswertung. Rot markierte Bereiche erfordern sofortiges Handeln.</div>
       <div class="mets" id="mets2"></div>
       <div class="sdiv"><div class="sdln"></div><div class="sdlb">Handlungsbedarf diese Woche</div><div class="sdln"></div></div>
-      <div id="vw-vergleich"></div><div id="prioli"></div>
+      <div id="prioli"></div>
       <div class="snav"><button class="bs" id="b2b">← Zurück</button><div class="sp"></div><button class="bn" id="b2n">Weiter: Kassengespräche →</button></div>
     </div>
 
@@ -317,15 +299,6 @@ input[type=file]{display:none}
       <div class="sti">Stornos &amp; Auszahlungsbelege</div>
       <div class="sde">Stornierungen kategorisieren, dann Auszahlungsbelege kontrollieren.</div>
       <div class="sdiv"><div class="sdln"></div><div class="sdlb">Stornierungen</div><div class="sdln"></div></div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px" id="stor-filter-pills">
-        <button class="fp active" data-sf="offen">Nur offene (Nein)</button>
-        <button class="fp" data-sf="alle">Alle</button>
-        <button class="fp" data-sf="nein">Gutschrift: Nein</button>
-        <button class="fp" data-sf="vielleicht">Gutschrift: Vielleicht</button>
-        <button class="fp" data-sf="ja">Gutschrift: Ja</button>
-        <button class="fp" data-sf="rueck">Mit Rückbelastung</button>
-        <button class="fp" data-sf="hoch">Art 7–8 (hoch)</button>
-      </div>
       <div id="stowrap"></div>
       <div class="sdiv" style="margin-top:20px"><div class="sdln"></div><div class="sdlb">Auszahlungsbelege kontrollieren</div><div class="sdln"></div></div>
       <div id="azwrap"></div>
@@ -368,17 +341,37 @@ input[type=file]{display:none}
       <div class="snav"><button class="bs" id="b5b">← Zurück</button><div class="sp"></div><button class="bn" id="btn-abschluss" style="background:var(--tx);border-color:var(--tx);color:#fff;font-size:14px;padding:11px 28px">Wochenabschluss &amp; PDF erstellen</button></div>
     </div>
 
+    <div class="pg" id="pg7">
+      <div class="sey">Fax-Tracker</div>
+      <div class="sti">Gefaxte Unterlagen & Bewilligungsstatus</div>
+      <div class="sde">Trage ein, was wann an welche Kasse gefaxt wurde. Beim Kassengespräch siehst du sofort welche Anträge noch offen sind und kannst direkt nachfragen.</div>
+      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:flex-end">
+        <button class="bn" id="btn-fax-neu">+ Neuer Eintrag</button>
+        <button class="fpill active" data-fs="alle" id="fs-alle">Alle</button>
+        <button class="fpill" data-fs="offen" id="fs-offen">Ausstehend</button>
+        <button class="fpill" data-fs="bewilligt" id="fs-bewilligt">Bewilligt</button>
+        <button class="fpill" data-fs="abgelehnt" id="fs-abgelehnt">Abgelehnt</button>
+      </div>
+      <div id="fax-neu-form" style="display:none;background:var(--sur);border:1px solid var(--bd);border-radius:var(--r);padding:16px 18px;margin-bottom:14px"></div>
+      <div id="fax-list"></div>
+    </div>
+      <div class="sti">Kassenkontakte</div>
+      <div class="sde">Telefonnummern und Ansprechpartner einmalig eintragen — erscheinen dann in jeder Anrufmappe und im PDF.</div>
+      <div class="ib gold">Daten werden nur lokal im Browser gespeichert. Nach "Neue Woche starten" bleiben sie erhalten.</div>
+      <div id="adr-list"></div>
+      <div class="snav"><div class="sp"></div><button class="bn" id="btn-adr-save">Speichern</button></div>
+    </div>
   </div>
 </div>
 
 <script>
 (function(){
   var PIN='1996';
-  var opos=[],oposd=[],stor=[],azTxt='',vwOpos=[];
-  function allOpos(){return oposd.concat(opos);}
+  var opos=[],stor=[],azTxt='';
   var onotes={},odone={},sstat={},azck={},vck={};
+  var adrbuch={}; // {kasse_konto: {tel:'', ansprechpartner:'', fax:''}}
+  var faxEintraege=[]; // [{id, patient, versNr, kasse, konto, typ, datum, status, notiz}]
   var ofilt='alle';
-  var sfilt='offen';
   var step=1;
 
   var KASSE={
@@ -388,6 +381,7 @@ input[type=file]{display:none}
     '1740':'Pflegekasse / SVA','1792':'Privat'
   };
   var PRIV=['1711','1721','1792'];
+  var FAX_TYPEN=['§36 Kombileistung / Pflegesachleistung','§39 Verhinderungspflege','§45b Abtretungserklärung','Höherstufungsantrag','Sonstige'];
 
   function fmt(n){return n.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' \u20ac'}
   function el(id){return document.getElementById(id)}
@@ -425,7 +419,7 @@ input[type=file]{display:none}
   }
 
   // STEPPER
-  var STEPS=[{n:1,l:'Upload'},{n:2,l:'Übersicht'},{n:3,l:'Kassengespräche'},{n:4,l:'Storno & Belege'},{n:5,l:'Abschluss'}];
+  var STEPS=[{n:1,l:'Upload'},{n:2,l:'Übersicht'},{n:3,l:'Kassengespräche'},{n:4,l:'Storno & Belege'},{n:5,l:'Abschluss'},{n:6,l:'Adressbuch'},{n:7,l:'Fax-Tracker'}];
 
   function buildStepper(){
     var bar=el('stepbar');bar.innerHTML='';
@@ -452,6 +446,8 @@ input[type=file]{display:none}
     if(n===3)renderOpos();
     if(n===4)renderStep4();
     if(n===5)renderStep5();
+    if(n===6)renderAdressbuch();
+    if(n===7)renderFaxTracker();
     window.scrollTo(0,0);
   }
 
@@ -462,9 +458,10 @@ input[type=file]{display:none}
   el('b3n').addEventListener('click',function(){goStep(4)});
   el('b4b').addEventListener('click',function(){goStep(3)});
   el('b4n').addEventListener('click',function(){goStep(5)});
+  el('btn-adr-save').addEventListener('click',saveAdressbuch);
   el('btn-live-pdf').addEventListener('click',function(){exportPdf(false)});
   el('btn-abschluss').addEventListener('click',doWochenabschluss);
-  if(el('b5r'))el('b5r').addEventListener('click',resetWoche);
+  el('b5r').addEventListener('click',resetWoche);
   el('b5b').addEventListener('click',function(){goStep(4)});
   el('btnXlsx').addEventListener('click',exportExcel);
   el('btnPdf').addEventListener('click',exportPdf);
@@ -476,21 +473,18 @@ input[type=file]{display:none}
   el('fi-session').addEventListener('change',function(){if(el('fi-session').files[0])loadSession(el('fi-session').files[0])});
 
   // UPLOAD
-  ['oposd','opos','storno','az','vw'].forEach(function(t){
-    (function(type){
-      var dz=el('dz-'+type);
-      var fi=el('fi-'+type);
-      if(!dz||!fi)return;
-      dz.addEventListener('click',function(){fi.click()});
-      dz.addEventListener('dragover',function(e){e.preventDefault();dz.style.borderColor='var(--gbd)';dz.style.background='var(--gbg)'});
-      dz.addEventListener('dragleave',function(){dz.style.borderColor='';dz.style.background=''});
-      dz.addEventListener('drop',function(e){
-        e.preventDefault();dz.style.borderColor='';dz.style.background='';
-        var f=e.dataTransfer.files[0];
-        if(f)handleFile(f,type);
-      });
-      fi.addEventListener('change',function(){if(fi.files[0])handleFile(fi.files[0],type)});
-    })(t);
+  ['opos','storno','az'].forEach(function(t){
+    var dz=el('dz-'+t);
+    var fi=el('fi-'+t);
+    dz.addEventListener('click',function(){fi.click()});
+    dz.addEventListener('dragover',function(e){e.preventDefault();dz.style.borderColor='var(--gbd)';dz.style.background='var(--gbg)'});
+    dz.addEventListener('dragleave',function(){dz.style.borderColor='';dz.style.background=''});
+    dz.addEventListener('drop',function(e){
+      e.preventDefault();dz.style.borderColor='';dz.style.background='';
+      var f=e.dataTransfer.files[0];
+      if(f&&f.type==='application/pdf')handleFile(f,t);
+    });
+    fi.addEventListener('change',function(){if(fi.files[0])handleFile(fi.files[0],t)});
   });
 
   // Filter pills
@@ -528,41 +522,19 @@ input[type=file]{display:none}
         return p.then(function(txt){
           return pdf.getPage(i).then(function(pg){
             return pg.getTextContent().then(function(c){
-              // Group text items by Y position to reconstruct lines
-              var lineMap={};
-              c.items.forEach(function(item){
-                if(!item.str.trim())return;
-                var y=Math.round(item.transform[5]);
-                if(!lineMap[y])lineMap[y]=[];
-                lineMap[y].push({x:item.transform[4],str:item.str});
-              });
-              // Sort lines top-to-bottom (descending Y in PDF coords)
-              var ys=Object.keys(lineMap).map(Number).sort(function(a,b){return b-a;});
-              var pageText=ys.map(function(y){
-                var words=lineMap[y].sort(function(a,b){return a.x-b.x;});
-                return words.map(function(w){return w.str;}).join(' ');
-              }).join('\n');
-              return txt+pageText+'\n';
+              return txt+c.items.map(function(x){return x.str}).join(' ')+'\n';
             });
           });
         });
       },Promise.resolve(''));
     }).then(function(text){
-      if(type==='oposd'){
-        var dbg=text.split('\n').slice(0,30);
-        console.log('RAW LINES:',JSON.stringify(dbg));
-        parseOposInto(text,true);
-        stat.className='ust ok';
-        stat.textContent=oposd.length+' Dubiose-Posten erkannt';
-        setTimeout(function(){generateSummaryPdf();},400);
-      } else if(type==='opos'){
-        parseOposInto(text,false);
+      if(type==='opos'){
+        parseOpos(text);
         stat.className='ust ok';
         stat.textContent=opos.length+' Posten erkannt';
-        if(!oposd.length)setTimeout(function(){generateSummaryPdf();},400);
+        setTimeout(function(){generateSummaryPdf();},400);
       }
       else if(type==='storno'){parseStor(text);stat.className='ust ok';stat.textContent=stor.length+' Stornos erkannt';}
-      else if(type==='vw'){parseVorwoche(text);stat.className='ust ok';stat.textContent=vwOpos.length+' Vorwoche-Posten eingelesen';}
       else{azTxt=text;stat.className='ust ok';stat.textContent='Belege eingelesen';}
       el('dz-'+type).classList.add('ok');
       lbl.innerHTML='<span style="color:var(--teal)">\u2713 '+file.name+'</span>';
@@ -574,161 +546,51 @@ input[type=file]{display:none}
     });
   }
 
-  function checkReady(){
-    opos=opos.filter(function(x){return x.mahn!=='2i'});
-    oposd=oposd.filter(function(x){return x.mahn!=='2i'});
-    el('btn1').disabled=allOpos().length===0;
-  }
+  function checkReady(){opos=opos.filter(function(x){return x.mahn!=='2i'});el('btn1').disabled=opos.length===0}
 
-  function parseOposInto(text,isDubiose){
-    var target=isDubiose?oposd:opos;
-    target.length=0;
-    // Exact pdf.js structure (Y-position based line reconstruction):
-    // "Konto: NNNN"
-    // "DD.MM.YYYY DD.MM.YYYY N,NN \u20ac N,NN \u20ac [FLAGS]"  <- amounts FIRST
-    // "Kassenname"
-    // "A233XXXXXX [XX]"                                         <- rechnNr (starts with A+digits)
-    // "Patient, VersNr, 1011 NNNNN"
-    // "TT.MM.JJJJ-TT.MM.JJJJ"
-    var lines=text.split('\n').map(function(l){return l.trim();}).filter(Boolean);
-    var kontoRe=/^Konto:\s*(\d+)$/;
-    var amtRe=/^(\d{2}\.\d{2}\.\d{4})\s+(\d{2}\.\d{2}\.\d{4})\s+(\d{1,3}(?:\.\d{3})*,\d{2})\s*\S+\s+(\d{1,3}(?:\.\d{3})*,\d{2})\s*\S*\s*(.*)$/;
-    var rechnRe=/^A\d{6,}/;
-    var patRe=/^(.+?),\s*(\S+),\s+1011\s+\d{5}$/;
-    var zeitRe=/^(\d{2}\.\d{2}\.\d{4})-(\d{2}\.\d{2}\.\d{4})$/;
-    var skipRe=/^(Offene Postenliste|A233 Bezugsdatum|Rechnungsnr|Fakt\.|Beh\.Person|Zwischensumme|Legende|M-Privat|Sammelreferenz|Summe:)/;
-    var curKonto='',st=0,pending={};
-    for(var i=0;i<lines.length;i++){
-      var line=lines[i];
-      if(!line)continue;
-      if(skipRe.test(line)){st=0;continue;}
-      var km=line.match(kontoRe);
-      if(km){curKonto=km[1];st=0;continue;}
-      if(st===0){
-        var am=line.match(amtRe);
-        if(am){
-          var flags=am[5].trim();
-          var mahn=/2i/.test(flags)?'2i':/\b2\b/.test(flags)?'2':/\b1\b/.test(flags)?'1':'0';
-          if(mahn==='2i')continue;
-          pending={konto:curKonto,kasse:KASSE[curKonto]||'',
-            isPriv:PRIV.indexOf(curKonto)>=0,isDubiose:isDubiose,
-            faktDatum:am[1],zahlZiel:am[2],
-            fakt:parseFloat(am[3].replace(/\./g,'').replace(',','.')),
-            rest:parseFloat(am[4].replace(/\./g,'').replace(',','.')),
-            mahn:mahn,
-            flagR:flags.split(' ').indexOf('R')>=0,
-            flagX:flags.split(' ').indexOf('X')>=0,
-            rechnNr:'',patient:'',versNr:'',zeitraum:'',ref:''};
-          st=1;
-        }
-        continue;
-      }
-      if(st===1){pending.kasse=pending.kasse||line;st=2;continue;}
-      if(st===2){
-        if(rechnRe.test(line)){pending.rechnNr=line.replace(/\s+/g,'');st=3;}
-        else{st=0;}
-        continue;
-      }
-      if(st===3){
-        var pm=line.match(patRe);
-        if(pm){pending.patient=pm[1].trim();pending.versNr=pm[2].trim();st=4;}
-        else{st=0;}
-        continue;
-      }
-      if(st===4){
-        var zm=line.match(zeitRe);
-        if(zm){pending.zeitraum=zm[1]+'\u2013'+zm[2];target.push(pending);}
-        st=0;continue;
+  function parseOpos(text){
+    opos=[];
+    var blocks=text.split(/Konto:\s*(\d+)/);
+    for(var bi=1;bi<blocks.length;bi+=2){
+      var konto=blocks[bi].trim();
+      var block=blocks[bi+1]||'';
+      var kasse=KASSE[konto]||'Konto '+konto;
+      var isPriv=PRIV.indexOf(konto)>=0;
+      var re=/1011\s+\d{5}([\s\S]*?)(?=1011\s+\d{5}|Zwischensumme|$)/g;
+      var m;
+      while((m=re.exec(block))!==null){
+        var chunk=m[1];
+        var pm=chunk.match(/([A-Z\u00c4\u00d6\u00dc][^\n,]+),\s*([A-Za-z0-9]+),/);
+        if(!pm)continue;
+        var zm=chunk.match(/(\d{2}\.\d{2}\.\d{4})-(\d{2}\.\d{2}\.\d{4})/);
+        var dates=[],dr=/\d{2}\.\d{2}\.\d{4}/g,dm;
+        while((dm=dr.exec(chunk))!==null)dates.push(dm[0]);
+        var amts=[],ar=/(\d{1,3}(?:\.\d{3})*,\d{2})\s*\u20ac/g,am;
+        while((am=ar.exec(chunk))!==null)amts.push(parseFloat(am[1].replace(/\./g,'').replace(',','.')));
+        if(amts.length<2)continue;
+        var mm=chunk.match(/\b(2i|2|1)\b/);
+        var mahn=mm?mm[1]:'0';
+        if(mahn==='2i')continue; // Inkasso ausblenden
+        var srm=chunk.match(/Sammelreferenz:\s*(A\S+)/);
+        opos.push({konto:konto,kasse:kasse,isPriv:isPriv,
+          patient:pm[1].trim(),versNr:pm[2].trim(),
+          zeitraum:zm?zm[1]+'\u2013'+zm[2]:'',
+          faktDatum:dates[0]||'',zahlZiel:dates[1]||'',
+          fakt:amts[0],rest:amts[1],
+          mahn:mahn,ref:srm?srm[1]:''});
       }
     }
-  }
-
-  // PARSE VORWOCHE — extracts open items from last week's PDF
-  // Parses the same OPOS format, stores in vwOpos for comparison
-  function parseVorwoche(text){
-    vwOpos=[];
-    var lines=text.split('\n').map(function(l){return l.trim()}).filter(Boolean);
-    var rechnRe=/^(A\d{10,}(?:\s+\d{2})?)\s+(\d{2}\.\d{2}\.\d{4})\s+(\d{2}\.\d{2}\.\d{4})\s+(\d{1,3}(?:\.\d{3})*,\d{2})\s*€\s+(\d{1,3}(?:\.\d{3})*,\d{2})\s*€(.*)$/;
-    var curKonto='',curKasse='',curPatient='',curVersNr='',curZeitraum='';
-    var kontoRe=/^Konto:\s*(\d+)$/;
-    var fallRe=/^1011\s+(\d{5})$/;
-    for(var i=0;i<lines.length;i++){
-      var line=lines[i];
-      var km=line.match(kontoRe);
-      if(km){curKonto=km[1];curKasse=KASSE[curKonto]||'Konto '+curKonto;continue;}
-      if(/^Zwischensumme/.test(line)||/^Offene Postenliste/.test(line)||/^A233 Bezugsdatum/.test(line)||/^Rechnungsnr/.test(line)||/^Beh\.Person/.test(line)||/^M-Privat/.test(line)||/^Legende/.test(line)||/^Summe:/.test(line))continue;
-      if(fallRe.test(line)){
-        if(i+1<lines.length&&!/^\d{2}\.\d{2}/.test(lines[i+1])&&!/^A233/.test(lines[i+1])&&!/^Sammel/.test(lines[i+1]))curKasse=lines[i+1];
-        curPatient='';curVersNr='';curZeitraum='';continue;
-      }
-      if(!curPatient){
-        var pm=line.match(/^(.+),\s*([A-Za-z0-9\/\.\-_]+),?\s*$/);
-        if(pm&&pm[1].length>2&&pm[1].length<50&&/[A-ZÄÖÜ]/.test(pm[1][0])){curPatient=pm[1].trim();curVersNr=pm[2].trim();continue;}
-      }
-      var zm=line.match(/^(\d{2}\.\d{2}\.\d{4})-(\d{2}\.\d{2}\.\d{4})$/);
-      if(zm){curZeitraum=zm[1]+'–'+zm[2];continue;}
-      var rm=line.match(rechnRe);
-      if(rm&&curPatient){
-        var rest=parseFloat(rm[5].replace(/\./g,'').replace(',','.'));
-        var flags=rm[6].trim();
-        var mahn=/\b2i\b/.test(flags)?'2i':/\b2\b/.test(flags)?'2':/\b1\b/.test(flags)?'1':'0';
-        if(mahn==='2i')continue;
-        vwOpos.push({
-          rechnNr:rm[1].replace(/\s+/g,''),
-          konto:curKonto,kasse:curKasse,
-          patient:curPatient,versNr:curVersNr,zeitraum:curZeitraum,
-          rest:rest,mahn:mahn,
-          flagR:/\bR\b/.test(flags),flagX:/\bX\b/.test(flags)
-        });
-        curPatient='';curVersNr='';curZeitraum='';
-      }
-    }
-  }
-
-  // VORWOCHE VERGLEICH — shown in renderStep2 when vwOpos available
-  function renderVorwocheVergleich(){
-    if(!vwOpos.length)return'';
-    var curr=allOpos();
-    // New this week (not in vorwoche by rechnNr)
-    var vwNrs={};
-    vwOpos.forEach(function(p){vwNrs[p.rechnNr]=p;});
-    var currNrs={};
-    curr.forEach(function(p){currNrs[p.rechnNr]=p;});
-    var neu=curr.filter(function(p){return!vwNrs[p.rechnNr]});
-    var weg=vwOpos.filter(function(p){return!currNrs[p.rechnNr]});
-    var geblieben=curr.filter(function(p){return vwNrs[p.rechnNr]});
-    var verschlechtert=geblieben.filter(function(p){
-      var vw=vwNrs[p.rechnNr];
-      return (p.mahn==='2'&&vw.mahn!=='2')||(p.flagR&&!vw.flagR);
+    // Duplikate entfernen: gleicher Posten kann durch Seitenumbrüche doppelt gematcht werden
+    var seen={};
+    opos=opos.filter(function(p){
+      var key=p.konto+'|'+p.versNr+'|'+p.faktDatum+'|'+p.fakt;
+      if(seen[key])return false;
+      seen[key]=true;
+      return true;
     });
-    var vwTotal=vwOpos.reduce(function(s,x){return s+x.rest},0);
-    var currTotal=curr.reduce(function(s,x){return s+x.rest},0);
-    var diff=currTotal-vwTotal;
-    var diffFmt=(diff>=0?'+':'')+fmt(diff);
-    var diffCls=diff>0?'color:var(--red)':'color:var(--teal)';
-    var h='<div class="sdiv"><div class="sdln"></div><div class="sdlb">Vorwoche-Vergleich</div><div class="sdln"></div></div>';
-    h+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px">';
-    h+='<div class="met"><div class="ml">Gesamt-Änderung</div><div class="mv" style="'+diffCls+'">'+diffFmt+'</div></div>';
-    h+='<div class="met'+(neu.length>0?' al':'')+'"><div class="ml">Neu diese Woche</div><div class="mv">'+neu.length+'</div></div>';
-    h+='<div class="met"><div class="ml">Erledigt / weggefallen</div><div class="mv" style="color:var(--teal)">'+weg.length+'</div></div>';
-    h+='<div class="met'+(verschlechtert.length>0?' al':'')+'"><div class="ml">Verschlechtert</div><div class="mv">'+verschlechtert.length+'</div></div>';
-    h+='</div>';
-    if(verschlechtert.length>0){
-      h+='<div class="ib red" style="margin-bottom:10px"><strong>Verschlechtert seit Vorwoche:</strong> ';
-      h+=verschlechtert.slice(0,5).map(function(p){return p.patient.split(',')[0]+(p.mahn==='2'?' (jetzt M2)':p.flagR?' (jetzt R)':'')}).join(' · ');
-      if(verschlechtert.length>5)h+=' +'+( verschlechtert.length-5)+' weitere';
-      h+='</div>';
-    }
-    if(neu.length>0){
-      h+='<div class="ib teal" style="margin-bottom:10px"><strong>Neu diese Woche ('+neu.length+'):</strong> ';
-      h+=neu.slice(0,5).map(function(p){return p.patient.split(',')[0]+' ('+p.kasse+', '+fmt(p.rest)+')'}).join(' · ');
-      if(neu.length>5)h+=' +'+( neu.length-5)+' weitere';
-      h+='</div>';
-    }
-    return h;
   }
 
-  // ── PARSE STORNO from Excel (Stornos_-_FLO.xlsx format)
+  // PARSE STORNO from Excel (Stornos_-_FLO.xlsx format)
   // Columns (0-based, row 5 = header, data from row 6):
   // 0=Eingang, 1=Rückbelastung am, 2=wann zu AS?, 3=Gutschrift,
   // 4=Kasse, 5=Art(Abstufung), 6=Storno-ID, 7=Rechnungsnummer,
@@ -820,92 +682,7 @@ input[type=file]{display:none}
     reader.readAsArrayBuffer(file);
   }
 
-  // PARSE VORWOCHE — extracts open items from last week's PDF
-  // Parses the same OPOS format, stores in vwOpos for comparison
-  function parseVorwoche(text){
-    vwOpos=[];
-    var lines=text.split('\n').map(function(l){return l.trim()}).filter(Boolean);
-    var rechnRe=/^(A\d{10,}(?:\s+\d{2})?)\s+(\d{2}\.\d{2}\.\d{4})\s+(\d{2}\.\d{2}\.\d{4})\s+(\d{1,3}(?:\.\d{3})*,\d{2})\s*€\s+(\d{1,3}(?:\.\d{3})*,\d{2})\s*€(.*)$/;
-    var curKonto='',curKasse='',curPatient='',curVersNr='',curZeitraum='';
-    var kontoRe=/^Konto:\s*(\d+)$/;
-    var fallRe=/^1011\s+(\d{5})$/;
-    for(var i=0;i<lines.length;i++){
-      var line=lines[i];
-      var km=line.match(kontoRe);
-      if(km){curKonto=km[1];curKasse=KASSE[curKonto]||'Konto '+curKonto;continue;}
-      if(/^Zwischensumme/.test(line)||/^Offene Postenliste/.test(line)||/^A233 Bezugsdatum/.test(line)||/^Rechnungsnr/.test(line)||/^Beh\.Person/.test(line)||/^M-Privat/.test(line)||/^Legende/.test(line)||/^Summe:/.test(line))continue;
-      if(fallRe.test(line)){
-        if(i+1<lines.length&&!/^\d{2}\.\d{2}/.test(lines[i+1])&&!/^A233/.test(lines[i+1])&&!/^Sammel/.test(lines[i+1]))curKasse=lines[i+1];
-        curPatient='';curVersNr='';curZeitraum='';continue;
-      }
-      if(!curPatient){
-        var pm=line.match(/^(.+),\s*([A-Za-z0-9\/\.\-_]+),?\s*$/);
-        if(pm&&pm[1].length>2&&pm[1].length<50&&/[A-ZÄÖÜ]/.test(pm[1][0])){curPatient=pm[1].trim();curVersNr=pm[2].trim();continue;}
-      }
-      var zm=line.match(/^(\d{2}\.\d{2}\.\d{4})-(\d{2}\.\d{2}\.\d{4})$/);
-      if(zm){curZeitraum=zm[1]+'–'+zm[2];continue;}
-      var rm=line.match(rechnRe);
-      if(rm&&curPatient){
-        var rest=parseFloat(rm[5].replace(/\./g,'').replace(',','.'));
-        var flags=rm[6].trim();
-        var mahn=/\b2i\b/.test(flags)?'2i':/\b2\b/.test(flags)?'2':/\b1\b/.test(flags)?'1':'0';
-        if(mahn==='2i')continue;
-        vwOpos.push({
-          rechnNr:rm[1].replace(/\s+/g,''),
-          konto:curKonto,kasse:curKasse,
-          patient:curPatient,versNr:curVersNr,zeitraum:curZeitraum,
-          rest:rest,mahn:mahn,
-          flagR:/\bR\b/.test(flags),flagX:/\bX\b/.test(flags)
-        });
-        curPatient='';curVersNr='';curZeitraum='';
-      }
-    }
-  }
-
-  // VORWOCHE VERGLEICH — shown in renderStep2 when vwOpos available
-  function renderVorwocheVergleich(){
-    if(!vwOpos.length)return'';
-    var curr=allOpos();
-    // New this week (not in vorwoche by rechnNr)
-    var vwNrs={};
-    vwOpos.forEach(function(p){vwNrs[p.rechnNr]=p;});
-    var currNrs={};
-    curr.forEach(function(p){currNrs[p.rechnNr]=p;});
-    var neu=curr.filter(function(p){return!vwNrs[p.rechnNr]});
-    var weg=vwOpos.filter(function(p){return!currNrs[p.rechnNr]});
-    var geblieben=curr.filter(function(p){return vwNrs[p.rechnNr]});
-    var verschlechtert=geblieben.filter(function(p){
-      var vw=vwNrs[p.rechnNr];
-      return (p.mahn==='2'&&vw.mahn!=='2')||(p.flagR&&!vw.flagR);
-    });
-    var vwTotal=vwOpos.reduce(function(s,x){return s+x.rest},0);
-    var currTotal=curr.reduce(function(s,x){return s+x.rest},0);
-    var diff=currTotal-vwTotal;
-    var diffFmt=(diff>=0?'+':'')+fmt(diff);
-    var diffCls=diff>0?'color:var(--red)':'color:var(--teal)';
-    var h='<div class="sdiv"><div class="sdln"></div><div class="sdlb">Vorwoche-Vergleich</div><div class="sdln"></div></div>';
-    h+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px">';
-    h+='<div class="met"><div class="ml">Gesamt-Änderung</div><div class="mv" style="'+diffCls+'">'+diffFmt+'</div></div>';
-    h+='<div class="met'+(neu.length>0?' al':'')+'"><div class="ml">Neu diese Woche</div><div class="mv">'+neu.length+'</div></div>';
-    h+='<div class="met"><div class="ml">Erledigt / weggefallen</div><div class="mv" style="color:var(--teal)">'+weg.length+'</div></div>';
-    h+='<div class="met'+(verschlechtert.length>0?' al':'')+'"><div class="ml">Verschlechtert</div><div class="mv">'+verschlechtert.length+'</div></div>';
-    h+='</div>';
-    if(verschlechtert.length>0){
-      h+='<div class="ib red" style="margin-bottom:10px"><strong>Verschlechtert seit Vorwoche:</strong> ';
-      h+=verschlechtert.slice(0,5).map(function(p){return p.patient.split(',')[0]+(p.mahn==='2'?' (jetzt M2)':p.flagR?' (jetzt R)':'')}).join(' · ');
-      if(verschlechtert.length>5)h+=' +'+( verschlechtert.length-5)+' weitere';
-      h+='</div>';
-    }
-    if(neu.length>0){
-      h+='<div class="ib teal" style="margin-bottom:10px"><strong>Neu diese Woche ('+neu.length+'):</strong> ';
-      h+=neu.slice(0,5).map(function(p){return p.patient.split(',')[0]+' ('+p.kasse+', '+fmt(p.rest)+')'}).join(' · ');
-      if(neu.length>5)h+=' +'+( neu.length-5)+' weitere';
-      h+='</div>';
-    }
-    return h;
-  }
-
-  // ── PARSE STORNO from PDF (fallback)
+  // PARSE STORNO from PDF (fallback)
   function parseStor(text){
     stor=[];
     var lines=text.split('\n').map(function(l){return l.trim()}).filter(Boolean);
@@ -933,10 +710,10 @@ input[type=file]{display:none}
   }
 
   function renderStep2(){
-    var total=allOpos().reduce(function(s,x){return s+x.rest},0);
-    var m2=allOpos().filter(function(x){return x.mahn==='2'});
-    var m1=allOpos().filter(function(x){return x.mahn==='1'});
-    var priv=allOpos().filter(function(x){return x.isPriv});
+    var total=opos.reduce(function(s,x){return s+x.rest},0);
+    var m2=opos.filter(function(x){return x.mahn==='2'});
+    var m1=opos.filter(function(x){return x.mahn==='1'});
+    var priv=opos.filter(function(x){return x.isPriv});
     var dq=total>0?((priv.reduce(function(s,x){return s+x.rest},0)/total)*100):0;
 
     // Storno-Analyse
@@ -1008,13 +785,11 @@ input[type=file]{display:none}
       hi:'Prüfen: Stornos gutgeschrieben? Rückbelastungen korrekt verbucht? Lastschriften stimmen?'});
 
     // 9. Größte Kasse
-    var gs=groupKasse(allOpos());
+    var gs=groupKasse(opos);
     if(gs.length)items.push({lv:'teal',ic:'i',
       ti:gs[0].kasse+': '+fmt(gs[0].posten.reduce(function(s,x){return s+x.rest},0))+' offen ('+gs[0].posten.length+' Posten)',
       hi:'Größte Kasse — mit einem Anruf die meiste offene Forderung klären.'});
 
-    var vwHtml=renderVorwocheVergleich();
-    if(vwHtml)el('vw-vergleich').innerHTML=vwHtml;
     var pl=el('prioli');
     pl.innerHTML=items.length?items.map(function(p){
       return'<div class="pitem '+p.lv+'"><div class="picon '+p.lv+'">'+p.ic+'</div><div><div class="pti">'+p.ti+'</div><div class="phi">'+p.hi+'</div></div></div>';
@@ -1022,48 +797,12 @@ input[type=file]{display:none}
   }
 
   // STEP 3
-  // Prioritäten (niedrigere Zahl = höhere Priorität):
-  // 0: Dubiose + M2         — sofortiger Handlungsbedarf
-  // 1: Dubiose + M1         — sehr dringend
-  // 2: Dubiose + R          — dringend
-  // 3: Dubiose (ohne M/R)   — erhöht
-  // 4: M2 + R               — sofort
-  // 5: M2                   — sofort
-  // 6: M1 + R               — hoch
-  // 7: M1                   — hoch
-  // 8: R only               — prüfen
-  // 9: Normal               — normal
-  // 10: Privat              — direkt
   function prioRank(g){
-    var hasM2=g.posten.some(function(x){return x.mahn==='2'});
-    var hasM1=g.posten.some(function(x){return x.mahn==='1'});
-    var hasR =g.posten.some(function(x){return x.flagR});
-    var hasDub=g.posten.some(function(x){return x.isDubiose});
-    if(g.isPriv&&!hasDub)return 10;
-    if(hasDub&&hasM2)return 0;
-    if(hasDub&&hasM1)return 1;
-    if(hasDub&&hasR) return 2;
-    if(hasDub)       return 3;
-    if(hasM2&&hasR)  return 4;
-    if(hasM2)        return 5;
-    if(hasM1&&hasR)  return 6;
-    if(hasM1)        return 7;
-    if(hasR)         return 8;
-    return 9;
-  }
-
-  function prioLabel(g){
-    var r=prioRank(g);
-    if(r<=1)return{label:'Dubiose · M'+( r===0?'2':'1'),cls:'bg-m2',urgent:true};
-    if(r===2)return{label:'Dubiose · R',cls:'bg-m2',urgent:true};
-    if(r===3)return{label:'Dubiose',cls:'bg-m2',urgent:true};
-    if(r===4)return{label:'M2 · R',cls:'bg-m2',urgent:true};
-    if(r===5)return{label:'Mahnstufe 2',cls:'bg-m2',urgent:true};
-    if(r===6)return{label:'M1 · R',cls:'bg-m1',urgent:false};
-    if(r===7)return{label:'Mahnstufe 1',cls:'bg-m1',urgent:false};
-    if(r===8)return{label:'Rückbelastung',cls:'bg-n',urgent:false};
-    if(r===10)return{label:'Privat',cls:'bg-p',urgent:false};
-    return{label:'Normal',cls:'bg-n',urgent:false};
+    var maxM=g.posten.some(function(x){return x.mahn==='2'})?'2':g.posten.some(function(x){return x.mahn==='1'})?'1':'0';
+    if(g.isPriv)return 3;
+    if(maxM==='2')return 0;
+    if(maxM==='1')return 1;
+    return 2;
   }
 
   function groupKasse(data){
@@ -1086,21 +825,20 @@ input[type=file]{display:none}
   }
 
   function renderOpos(){
-    if(!allOpos().length){el('olist').innerHTML='<div class="emp"><strong>Keine OPOS-Daten</strong>Bitte in Schritt 1 die OPOS-PDF hochladen.</div>';return}
+    if(!opos.length){el('olist').innerHTML='<div class="emp"><strong>Keine OPOS-Daten</strong>Bitte in Schritt 1 die OPOS-PDF hochladen.</div>';return}
     var q=(el('osearch').value||'').toLowerCase();
-    var data=allOpos();
+    var data=opos.slice();
     if(ofilt==='m2')data=data.filter(function(x){return x.mahn==='2'});
     if(ofilt==='m1')data=data.filter(function(x){return x.mahn==='1'});
     if(ofilt==='privat')data=data.filter(function(x){return x.isPriv});
     if(ofilt==='offen')data=data.filter(function(x){return!odone['d_'+x.konto]});
     if(q)data=data.filter(function(x){return x.kasse.toLowerCase().indexOf(q)>=0||x.patient.toLowerCase().indexOf(q)>=0||x.versNr.toLowerCase().indexOf(q)>=0});
     var groups=groupKasse(data);
-    var allG=groupKasse(allOpos());
+    var allG=groupKasse(opos);
     var total=data.reduce(function(s,x){return s+x.rest},0);
     var doneC=allG.filter(function(g){return odone['d_'+g.konto]}).length;
     el('ohint').textContent=groups.length+' Kassen \u00b7 '+data.length+' Posten \u00b7 '+fmt(total)+' offen \u00b7 '+doneC+' von '+allG.length+' Anrufe erledigt';
     var list=el('olist');list.innerHTML='';
-    var lastUrgent=null;
     groups.forEach(function(g,gi){
       var gid='g'+gi+g.konto;
       var sr=g.posten.reduce(function(s,x){return s+x.rest},0);
@@ -1109,52 +847,27 @@ input[type=file]{display:none}
       var isDone=!!odone['d_'+g.konto];
       var pats=Array.from(new Set(g.posten.map(function(p){return p.patient})));
       var refs=Array.from(new Set(g.posten.map(function(p){return p.ref}).filter(Boolean)));
+      var faxSect=faxBlockForKasse(g.kasse,g.konto);
       var banner=g.isPriv
-        ?'<div class="ab p"><strong>Hinweis Privat:</strong> Direktkontakt notwendig \u2014 Kasse hat keinen Zugriff.<br>'+g.posten.length+' Rechnung'+(g.posten.length>1?'en':'')+' \u00b7 Gesamt: <strong>'+fmt(sr)+'</strong></div>'
-        :'<div class="ab k"><strong>Gesprächsvorbereitung:</strong> '+pats.length+' Patient'+(pats.length>1?'en':'')+' \u2014 '+pats.join(', ')+'<br>Offener Gesamtbetrag: <strong>'+fmt(sr)+'</strong>'+(refs.length?' \u00b7 Sammelreferenzen: '+refs.join(', '):'')+'</div>';
+        ?'<div class="ab p"><strong>Hinweis Privat:</strong> Direktkontakt notwendig \u2014 Kasse hat keinen Zugriff.<br>'+g.posten.length+' Rechnung'+(g.posten.length>1?'en':'')+' \u00b7 Gesamt: <strong>'+fmt(sr)+'</strong></div>'+faxSect
+        :'<div class="ab k"><strong>Gesprächsvorbereitung:</strong> '+pats.length+' Patient'+(pats.length>1?'en':'')+' \u2014 '+pats.join(', ')+'<br>Offener Gesamtbetrag: <strong>'+fmt(sr)+'</strong>'+(refs.length?' \u00b7 Sammelreferenzen: '+refs.join(', '):'')+(adrbuch[adrKey(g.kasse,g.konto)]&&adrbuch[adrKey(g.kasse,g.konto)].tel?'<br>\u260e <strong>'+adrbuch[adrKey(g.kasse,g.konto)].tel+'</strong>'+(adrbuch[adrKey(g.kasse,g.konto)].ansp?' \u00b7 '+adrbuch[adrKey(g.kasse,g.konto)].ansp:''):'')+'</div>'+faxSect;
       var rows=g.posten.map(function(p){
-        return'<tr><td style="font-weight:500">'+p.patient+'</td><td style="color:var(--t2);font-size:11px">'+p.versNr+'</td><td style="color:var(--t2);font-size:11px">'+p.zeitraum+'</td><td class="tr">'+fmt(p.fakt)+'</td><td class="tr '+(p.rest>500?'hi':'lo')+'">'+fmt(p.rest)+'</td><td style="text-align:center">'+mb(p)+'</td><td style="font-size:11px;color:var(--t2)">'+p.zahlZiel+'</td></tr>';
+        return'<tr><td style="font-weight:500">'+p.patient+'</td><td style="color:var(--t2);font-size:11px">'+p.versNr+'</td><td style="color:var(--t2);font-size:11px">'+p.zeitraum+'</td><td class="tr">'+fmt(p.fakt)+'</td><td class="tr '+(p.rest>500?'hi':'lo')+'">'+fmt(p.rest)+'</td><td style="text-align:center">'+mb(p.mahn)+'</td><td style="font-size:11px;color:var(--t2)">'+p.zahlZiel+'</td></tr>';
       }).join('');
-      var pl=prioLabel(g);
-      // Insert section divider when urgency level changes
-      var isUrgentNow=pl.urgent;
-      if(lastUrgent===null){
-        var div=document.createElement('div');
-        div.className='sdiv';
-        div.innerHTML='<div class="sdln"></div><div class="sdlb" style="color:'+(isUrgentNow?'var(--red)':'var(--t2)')+'">'+
-          (isUrgentNow?'\u26a0 Dringend — sofort abarbeiten':'Normal')+'</div><div class="sdln"></div>';
-        list.appendChild(div);
-      } else if(lastUrgent===true&&!isUrgentNow){
-        var div2=document.createElement('div');
-        div2.className='sdiv';
-        div2.style.marginTop='16px';
-        div2.innerHTML='<div class="sdln"></div><div class="sdlb">Normal — nach Dringlichkeit abarbeiten</div><div class="sdln"></div>';
-        list.appendChild(div2);
-      }
-      lastUrgent=isUrgentNow;
       var card=document.createElement('div');
       card.className='kc'+(isDone?' done':'');
       card.innerHTML=
-        '<div class="kh" id="kh_'+gid+'" style="'+(pl.urgent&&!isDone?'background:#fff8f8':'')+'">'+
-          '<div class="kn">'+
-            '<span class="bg '+pl.cls+'" style="margin-right:8px;font-size:10px">'+pl.label+'</span>'+
-            g.kasse+'<span class="kkto">Kto. '+g.konto+'</span>'+
-            (isDone?' <span class="bg bg-d">Erledigt</span>':'')+
-          '</div>'+
-          '<div class="bgs">'+
-            '<span class="bg bg-n">'+g.posten.length+' Posten</span>'+
-            '<span class="bg bg-s">'+fmt(sr)+'</span>'+
-            (g.posten.some(function(x){return x.isDubiose})?'<span class="bg bg-m2">Dubiose</span>':'')+
-            (g.posten.some(function(x){return x.flagR})?'<span class="bg bg-m1">R</span>':'')+
-            (g.posten.some(function(x){return x.flagX})?'<span class="bg bg-n" style="background:#e6f1fb;color:#0c447c">X</span>':'')+
-          '</div>'+
+        '<div class="kh" id="kh_'+gid+'">'+
+          '<div class="kn">'+g.kasse+'<span class="kkto">Kto. '+g.konto+'</span>'+(isDone?' <span class="bg bg-d">Erledigt</span>':'')+'</div>'+
+          '<div class="bgs"><span class="bg bg-n">'+g.posten.length+' Posten</span><span class="bg bg-s">'+fmt(sr)+'</span>'+(maxM==='2'?'<span class="bg bg-m2">M2</span>':'')+(maxM==='1'?'<span class="bg bg-m1">M1</span>':'')+(g.isPriv?'<span class="bg bg-p">Privat</span>':'')+'</div>'+
           '<span class="chv" id="chv_'+gid+'">&#9660;</span>'+
         '</div>'+
         '<div class="kb" id="kb_'+gid+'">'+
           banner+
           '<div style="overflow-x:auto"><table class="ptbl"><thead><tr><th>Patient</th><th>Vers.-Nr.</th><th>Zeitraum</th><th style="text-align:right">Fakt.-Betrag</th><th style="text-align:right">Restbetrag</th><th style="text-align:center">M</th><th>Zahlungsziel</th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr class="tfoot"><td colspan="3">Summe</td><td class="tr">'+fmt(sf)+'</td><td class="tr">'+fmt(sr)+'</td><td colspan="2"></td></tr></tfoot></table></div>'+
           '<div class="nr"><span class="nl">Gesprächsnotiz</span><textarea class="nta" id="nt_'+gid+'" placeholder="Datum, Ansprechpartner, Ergebnis \u2026">'+( onotes[gid]||'')+'</textarea></div>'+
-          '<div class="kf"><button class="db '+(isDone?'done':'')+'" id="db_'+gid+'">'+(isDone?'Erledigt \u2713':'Als erledigt markieren')+'</button></div>'+
+          '<div class="kf"><button class="db '+(isDone?'done':'')+'" id="db_'+gid+'">'+(isDone?'Erledigt \u2713':'Als erledigt markieren')+'</button>'+
+          '<button class="db" id="faxbtn_'+gid+'" style="color:var(--gold);border-color:var(--gold-bd)">+ Fax erfassen</button></div>'+
         '</div>';
       list.appendChild(card);
       (function(g2,gid2){
@@ -1166,6 +879,10 @@ input[type=file]{display:none}
         el('db_'+gid2).addEventListener('click',function(){
           odone['d_'+g2.konto]=!odone['d_'+g2.konto];renderOpos();
         });
+        el('faxbtn_'+gid2).addEventListener('click',function(){
+          goStep(7);
+          setTimeout(function(){showFaxForm(g2.kasse,pats[0],g2.posten[0]&&g2.posten[0].versNr||'')},100);
+        });
       })(g,gid);
     });
   }
@@ -1173,41 +890,20 @@ input[type=file]{display:none}
   // STEP 4
   var SLABS=['check','act','call','privat','wait','solve'];
   var SLBL={check:'Prüfen',act:'Act',call:'Call',privat:'Privat',wait:'Wait',solve:'Gelöst'};
-  var AZ=['Stornos gutgeschrieben?','Rückbelastungen geprüft?','Lastschriften korrekt?','Auszahlungsbetrag abgeglichen?','Abweichungen dokumentiert?'];
 
   function renderStep4(){
-    // Wire filter pills (only on first render or after re-render)
-    document.querySelectorAll('[data-sf]').forEach(function(btn){
-      btn.onclick=function(){
-        document.querySelectorAll('[data-sf]').forEach(function(b){b.classList.remove('active')});
-        btn.classList.add('active');
-        sfilt=btn.getAttribute('data-sf');
-        renderStep4();
-      };
-    });
-
     var sw=el('stowrap');
     if(!stor.length){
       sw.innerHTML='<div class="ib gold">Keine Storno-Excel hochgeladen — dieser Schritt kann übersprungen werden.</div>';
     } else {
-      // Apply filter
-      var filtered=stor.filter(function(s){
-        if(sfilt==='offen'||sfilt==='nein') return s.gutschrift==='nein';
-        if(sfilt==='vielleicht') return s.gutschrift==='vielleicht';
-        if(sfilt==='ja') return s.gutschrift==='ja';
-        if(sfilt==='rueck') return s.rueckbelastung>0;
-        if(sfilt==='hoch') return s.art>=7;
-        return true; // alle
-      });
-      var sorted=filtered.slice().sort(function(a,b){var pa=storPrioRank(a),pb=storPrioRank(b);if(pa!==pb)return pa-pb;return b.betrag-a.betrag;});
-      var countLabel=filtered.length+' von '+stor.length+' Stornos';
+      var sorted=stor.slice().sort(function(a,b){var pa=storPrioRank(a),pb=storPrioRank(b);if(pa!==pb)return pa-pb;return b.betrag-a.betrag;});
       var rows=sorted.map(function(s){
         var stat=sstat[s.id]||s.status||'check';
         var artCls=s.art>=7?'bg-m2':s.art>=5?'bg-m1':'bg-n';
         var artLabel=s.art>0?'Art '+s.art:'—';
         var gutCls=s.gutschrift==='ja'?'color:var(--teal)':s.gutschrift==='nein'?'color:var(--red);font-weight:500':'color:var(--amb)';
-        var gutLabel=s.gutschrift==='ja'?'Ja \u2713':s.gutschrift==='nein'?'Nein \u26a0':'Vielleicht';
-        var rueckHtml=s.rueckbelastung>0?'<span style="color:var(--red);font-weight:500">'+fmt(s.rueckbelastung)+'</span>':'<span style="color:var(--t3)">\u2014</span>';
+        var gutLabel=s.gutschrift==='ja'?'Ja ✓':s.gutschrift==='nein'?'Nein ⚠':'Vielleicht';
+        var rueckHtml=s.rueckbelastung>0?'<span style="color:var(--red);font-weight:500">'+fmt(s.rueckbelastung)+'</span>':'<span style="color:var(--t3)">—</span>';
         return'<tr style="'+(s.rueckbelastung>0?'background:#fff8f8':'')+'">'+
           '<td style="font-weight:500">'+s.patient+'<br><span style="font-size:10px;color:var(--t3)">'+s.leistungsmonat+'</span></td>'+
           '<td style="font-size:11px;color:var(--t2)">'+s.kasse+'</td>'+
@@ -1222,11 +918,9 @@ input[type=file]{display:none}
       var rueckGes=stor.reduce(function(s,x){return s+x.rueckbelastung},0);
       sw.innerHTML=
         (rueckGes>0?'<div class="ib red" style="margin-bottom:10px"><strong>Ausstehende Rückbelastungen gesamt: '+fmt(rueckGes)+'</strong> — rot markierte Zeilen sofort prüfen!</div>':'')+
-        '<div style="font-size:11px;color:var(--t2);margin-bottom:6px">'+countLabel+'</div>'+
-        (sorted.length===0?'<div class="ib teal">Keine Stornos für diesen Filter.</div>':
-          '<div style="overflow-x:auto;border:1px solid var(--bd);border-radius:var(--r);overflow:hidden">'+
-          '<table class="stbl"><thead><tr><th>Patient</th><th>Kasse</th><th>Art</th><th>Gutschrift</th><th>Betrag</th><th>Rückbelastung</th><th>Stornogrund</th><th>Status</th></tr></thead><tbody>'+rows+'</tbody></table></div>')+
-        '<div class="ib gold" style="margin-top:12px"><strong>Art-Abstufung:</strong> 1\u20134 = niedrig \u00b7 5\u20136 = mittel \u00b7 7\u20138 = hoch. &nbsp;<strong>Farbschema:</strong> Act = sofort \u00b7 Call = Kasse anrufen \u00b7 Privat = Direktkontakt \u00b7 Wait = abwarten \u00b7 Gel\u00f6st = erledigt.<br>Liste bis zum <strong>15. des Monats</strong> an AS Bremen senden.</div>';
+        '<div style="overflow-x:auto;border:1px solid var(--bd);border-radius:var(--r);overflow:hidden">'+
+        '<table class="stbl"><thead><tr><th>Patient</th><th>Kasse</th><th>Art</th><th>Gutschrift</th><th>Betrag</th><th>Rückbelastung</th><th>Stornogrund</th><th>Status</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+        '<div class="ib gold" style="margin-top:12px"><strong>Art-Abstufung:</strong> 1–4 = niedrig · 5–6 = mittel · 7–8 = hoch (keine Zahlung erfolgt). &nbsp;<strong>Farbschema:</strong> Act = sofort · Call = Kasse anrufen · Privat = Direktkontakt · Wait = abwarten · Prüfen = unklar · Gelöst = erledigt.<br>Liste bis zum <strong>15. des Monats</strong> an AS Bremen senden.</div>';
       sw.querySelectorAll('.ssel').forEach(function(sel){
         sel.addEventListener('change',function(){sstat[sel.getAttribute('data-id')]=sel.value});
       });
@@ -1256,11 +950,11 @@ input[type=file]{display:none}
   ];
 
   function renderStep5(){
-    var gs=groupKasse(allOpos());
-    var allG=groupKasse(allOpos());
+    var gs=groupKasse(opos);
+    var allG=groupKasse(opos);
     var doneC=allG.filter(function(g){return odone['d_'+g.konto]}).length;
-    var total=allOpos().reduce(function(s,x){return s+x.rest},0);
-    var m2=allOpos().filter(function(x){return x.mahn==='2'}).length;
+    var total=opos.reduce(function(s,x){return s+x.rest},0);
+    var m2=opos.filter(function(x){return x.mahn==='2'}).length;
     var sGel=Object.values(sstat).filter(function(v){return v==='solve'}).length;
     var azD=Object.keys(azck).filter(function(k){return k.indexOf('az')===0&&azck[k]}).length;
     el('wsumm').innerHTML=
@@ -1286,8 +980,9 @@ input[type=file]{display:none}
       version:1,
       savedAt:now.toISOString(),
       weekLabel:'KW '+kw(now)+' '+now.getFullYear(),
-      opos:opos,oposd:oposd,stor:stor,vwOpos:vwOpos,
-      onotes:onotes,odone:odone,sstat:sstat,azck:azck,vck:vck
+      opos:opos,stor:stor,
+      onotes:onotes,odone:odone,sstat:sstat,azck:azck,vck:vck,
+      adrbuch:adrbuch,faxEintraege:faxEintraege
     };
     var blob=new Blob([JSON.stringify(session,null,2)],{type:'application/json'});
     var a=document.createElement('a');
@@ -1304,18 +999,20 @@ input[type=file]{display:none}
       try{
         var s=JSON.parse(e.target.result);
         if(!s.version||!s.opos){throw new Error('Ungültiges Format')}
-        opos=s.opos||[];oposd=s.oposd||[];vwOpos=s.vwOpos||[];
+        opos=s.opos||[];
         stor=s.stor||[];
         Object.assign(onotes,s.onotes||{});
         Object.assign(odone,s.odone||{});
         Object.assign(sstat,s.sstat||{});
         Object.assign(azck,s.azck||{});
         Object.assign(vck,s.vck||{});
+        Object.assign(adrbuch,s.adrbuch||{});
+        if(s.faxEintraege)faxEintraege=s.faxEintraege;
         stat.className='ust ok';
-        stat.textContent='Session geladen: '+s.weekLabel+' ('+allOpos().length+' OPOS-Posten)';
+        stat.textContent='Session geladen: '+s.weekLabel+' ('+opos.length+' OPOS-Posten)';
         el('dl-session').innerHTML='<span style="color:var(--teal)">\u2713 '+file.name+'</span>';
         el('dz-session').classList.add('ok');
-        el('btn1').disabled=allOpos().length===0;
+        el('btn1').disabled=opos.length===0;
       }catch(err){
         stat.className='ust err';
         stat.textContent='Fehler: Datei konnte nicht geladen werden.';
@@ -1328,8 +1025,8 @@ input[type=file]{display:none}
   function exportExcel(){
     var now=new Date();
     var dateStr=now.toISOString().slice(0,10);
-    var allG=groupKasse(allOpos());
-    var AZ_LBL=AZ;
+    var allG=groupKasse(opos);
+    var AZ_LBL=['Stornos gutgeschrieben?','Rückbelastungen geprüft?','Lastschriften korrekt?','Auszahlungsbetrag abgeglichen?','Abweichungen dokumentiert?'];
 
     // Sheet 1: OPOS Kassengespräche
     var oposRows=[['Kasse','Konto','Patient','Vers.-Nr.','Zeitraum','Fakt.-Betrag','Restbetrag','Mahnstufe','Zahlungsziel','Erledigt','Gesprächsnotiz']];
@@ -1431,238 +1128,124 @@ input[type=file]{display:none}
   function exportPdf(isAbschluss){
     var now=new Date();
     var dateStr=now.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});
+    var allG=groupKasse(opos);
+    var total=opos.reduce(function(s,x){return s+x.rest},0);
+    var m2=opos.filter(function(x){return x.mahn==='2'}).length;
+    var AZ_LBL=['Stornos gutgeschrieben?','Rückbelastungen geprüft?','Lastschriften korrekt?','Auszahlungsbetrag abgeglichen?','Abweichungen dokumentiert?'];
+    var SLBL={check:'Prüfen',act:'Act',call:'Call',privat:'Privat',wait:'Wait',solve:'Gelöst'};
+
+    var html='<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><title>AS-Kassen-Assistent Wochenbericht</title><style>';
+    html+='body{font-family:Arial,sans-serif;font-size:11px;color:#1a1916;margin:24px}';
+    html+='h1{font-size:16px;font-weight:normal;margin-bottom:4px}';
+    html+='.sub{font-size:11px;color:#6b6860;margin-bottom:20px}';
+    html+='h2{font-size:13px;font-weight:bold;margin:20px 0 8px;border-bottom:1px solid #e2ddd4;padding-bottom:4px}';
+    html+='h3{font-size:12px;font-weight:bold;margin:12px 0 4px;color:#0f6e56}';
+    html+='.metrics{display:flex;gap:16px;margin-bottom:16px}';
+    html+='.met{border:1px solid #e2ddd4;border-radius:6px;padding:8px 12px;min-width:100px}';
+    html+='.ml{font-size:9px;text-transform:uppercase;color:#9e9b93;margin-bottom:2px}';
+    html+='.mv{font-size:16px}';
+    html+='table{width:100%;border-collapse:collapse;margin-bottom:12px}';
+    html+='th{text-align:left;padding:5px 7px;font-size:10px;background:#f9f7f3;border-bottom:1px solid #e2ddd4;color:#6b6860}';
+    html+='td{padding:5px 7px;border-bottom:1px solid #e2ddd4;font-size:11px;vertical-align:top}';
+    html+='.notiz{background:#f5edd8;border-left:3px solid #d4a843;padding:5px 8px;margin:4px 0 10px;font-size:11px;color:#7a5c18}';
+    html+='.done{color:#0f6e56;font-weight:bold}.open{color:#854f0b}';
+    html+='.ck{color:#0f6e56}.unk{color:#9e9b93}';
+    html+='@media print{body{margin:12px}h2{page-break-before:auto}}';
+    html+='</style></head><body>';
     var kwStr='KW '+kw(now)+' / '+now.getFullYear();
-    var allG=groupKasse(allOpos());
-    var total=allOpos().reduce(function(s,x){return s+x.rest},0);
-    var doneG=allG.filter(function(g){return odone['d_'+g.konto]});
-    var openG=allG.filter(function(g){return!odone['d_'+g.konto]});
-    var m2List=allOpos().filter(function(x){return x.mahn==='2'});
-    var rList=allOpos().filter(function(x){return x.flagR});
-    var storOffen=stor.filter(function(s){return s.gutschrift==='nein'});
-    var SLBL2={check:'Prüfen',act:'Act',call:'Call',privat:'Privat',wait:'Wait',solve:'Gelöst'};
+    var pdfTitle=isAbschluss?'Wochenabschluss':'Aktueller Stand';
+    html+='<h1>AS-Kassen-Assistent \u2014 '+pdfTitle+'</h1>';
+    html+='<div class="sub">'+kwStr+' &nbsp;|&nbsp; Erstellt am '+dateStr+' &nbsp;|&nbsp; '+opos.length+' Posten &nbsp;|&nbsp; Restbetrag: '+fmt(total)+(isAbschluss?' &nbsp;|&nbsp; <strong>Wochenabschluss</strong>':'')+'</div>';
 
-    var h='<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8">';
-    h+='<title>AS-Kassen-'+(isAbschluss?'Abschluss':'Stand')+' '+kwStr+'</title><style>';
-    h+='*{box-sizing:border-box;margin:0;padding:0}';
-    h+='body{font-family:Arial,sans-serif;font-size:11px;color:#1a1916;background:#fff;padding:20px}';
-    h+='.header{border-bottom:3px solid #1a1916;padding-bottom:10px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:flex-end}';
-    h+='.header-left h1{font-size:20px;font-weight:bold;letter-spacing:.5px}';
-    h+='.header-left .sub{font-size:11px;color:#6b6860;margin-top:3px}';
-    h+='.header-right{text-align:right;font-size:11px;color:#6b6860}';
-    h+='.badge{display:inline-block;padding:2px 8px;border-radius:3px;font-size:10px;font-weight:bold;text-transform:uppercase;letter-spacing:.5px}';
-    h+='.badge-abschluss{background:#1a1916;color:#fff}';
-    h+='.badge-stand{background:#e2ddd4;color:#6b6860}';
-    // Summary boxes
-    h+='.summary{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:20px}';
-    h+='.sbox{border:1px solid #e2ddd4;border-radius:6px;padding:10px 12px}';
-    h+='.sbox-label{font-size:9px;text-transform:uppercase;color:#9e9b93;margin-bottom:4px;letter-spacing:.5px}';
-    h+='.sbox-val{font-size:18px;font-weight:bold}';
-    h+='.sbox-red .sbox-val{color:#a32d2d}';
-    h+='.sbox-green .sbox-val{color:#0f6e56}';
-    h+='.sbox-orange .sbox-val{color:#854f0b}';
-    // Section headers
-    h+='.sec{font-size:13px;font-weight:bold;text-transform:uppercase;letter-spacing:.8px;color:#6b6860;border-bottom:1px solid #e2ddd4;padding-bottom:5px;margin:20px 0 10px}';
-    h+='.sec-red{color:#a32d2d;border-color:#f0c0c0}';
-    h+='.sec-green{color:#0f6e56;border-color:#b0ddd0}';
-    // Status indicators
-    h+='.tag{display:inline-block;padding:1px 7px;border-radius:3px;font-size:9px;font-weight:bold;text-transform:uppercase}';
-    h+='.tag-offen{background:#fef0e0;color:#854f0b;border:1px solid #f0c88a}';
-    h+='.tag-erledigt{background:#e0f5ee;color:#0f6e56;border:1px solid #8adbc4}';
-    h+='.tag-m2{background:#fde8e8;color:#a32d2d;border:1px solid #f0a0a0}';
-    h+='.tag-m1{background:#fef0e0;color:#854f0b;border:1px solid #f0c88a}';
-    h+='.tag-r{background:#fff3e0;color:#854f0b;border:1px solid #ffc46b}';
-    h+='.tag-dub{background:#fde8e8;color:#a32d2d;border:1px solid #f0a0a0}';
-    // Kasse block
-    h+='.kblock{border:1px solid #e2ddd4;border-radius:6px;margin-bottom:8px;overflow:hidden;page-break-inside:avoid}';
-    h+='.kblock-done{border-color:#b0ddd0;background:#fafffe}';
-    h+='.kblock-open{border-color:#f0c88a}';
-    h+='.kblock-urgent{border-color:#f0a0a0;border-width:2px}';
-    h+='.khead{padding:8px 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}';
-    h+='.khead-done{background:#e0f5ee}';
-    h+='.khead-open{background:#fef8ef}';
-    h+='.khead-urgent{background:#fde8e8}';
-    h+='.kname{font-size:12px;font-weight:bold;flex:1}';
-    h+='.kamt{font-size:12px;font-weight:bold;margin-left:auto}';
-    h+='.kbody{padding:0 12px 8px}';
-    h+='table{width:100%;border-collapse:collapse;margin-top:6px;font-size:10px}';
-    h+='th{text-align:left;padding:4px 6px;background:#f5f2ed;color:#6b6860;font-size:9px;text-transform:uppercase;letter-spacing:.3px}';
-    h+='td{padding:4px 6px;border-bottom:1px solid #f0ede8;vertical-align:top}';
-    h+='tr:last-child td{border-bottom:none}';
-    h+='.tr{text-align:right}';
-    h+='.notiz{background:#fffbf0;border-left:3px solid #d4a843;padding:5px 10px;margin-top:6px;font-size:10px;color:#7a5c18;border-radius:0 4px 4px 0}';
-    h+='.stor-row-open{background:#fff8f8}';
-    h+='.ck{color:#0f6e56;font-weight:bold}';
-    h+='.un{color:#9e9b93}';
-    h+='.alert-box{background:#fde8e8;border:1px solid #f0a0a0;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:11px}';
-    h+='@media print{';
-    h+='  @page{margin:1.5cm;size:A4}';
-    h+='  body{padding:0;font-size:10px}';
-    h+='  .kblock{page-break-inside:avoid}';
-    h+='  .no-print{display:none}';
-    h+='}';
-    h+='</style></head><body>';
+    // Metrics
+    var doneC=allG.filter(function(g){return odone['d_'+g.konto]}).length;
+    html+='<div class="metrics">';
+    html+='<div class="met"><div class="ml">Kassengespräche</div><div class="mv">'+doneC+'/'+allG.length+'</div></div>';
+    html+='<div class="met"><div class="ml">Restbetrag</div><div class="mv">'+fmt(total)+'</div></div>';
+    html+='<div class="met"><div class="ml">Mahnstufe 2</div><div class="mv '+(m2>0?'open':'done')+'">'+m2+'</div></div>';
+    html+='<div class="met"><div class="ml">Stornos</div><div class="mv">'+stor.length+'</div></div>';
+    html+='</div>';
 
-    // ── HEADER ──
-    h+='<div class="header">';
-    h+='<div class="header-left">';
-    h+='<h1>HOMECARE &mdash; AS-Kassen-Assistent</h1>';
-    h+='<div class="sub">'+kwStr+' &nbsp;&nbsp;|&nbsp;&nbsp; Erstellt: '+dateStr+'</div>';
-    h+='</div>';
-    h+='<div class="header-right">';
-    h+='<span class="badge '+(isAbschluss?'badge-abschluss':'badge-stand')+'">'+(isAbschluss?'Wochenabschluss':'Aktueller Stand')+'</span>';
-    h+='</div></div>';
-
-    // ── WARNHINWEIS wenn noch offene dringende Posten ──
-    if(m2List.length>0||rList.length>0){
-      h+='<div class="alert-box">';
-      h+='<strong>⚠ Handlungsbedarf:</strong>';
-      if(m2List.length>0)h+=' &nbsp;'+m2List.length+' Posten auf Mahnstufe 2';
-      if(rList.length>0)h+=' &nbsp;|&nbsp; '+rList.length+' Rückbelastungen (R)';
-      h+='</div>';
-    }
-
-    // ── SUMMARY BOXES ──
-    var azDone=AZ.filter(function(_,i){return azck['az'+i]}).length;
-    var vorbDone=VORB.filter(function(v){return vck[v.id]}).length;
-    h+='<div class="summary">';
-    h+='<div class="sbox '+(openG.length>0?'sbox-orange':'sbox-green')+'">';
-    h+='<div class="sbox-label">Kassengespräche</div>';
-    h+='<div class="sbox-val">'+doneG.length+' / '+allG.length+'</div></div>';
-    h+='<div class="sbox"><div class="sbox-label">Restbetrag offen</div>';
-    h+='<div class="sbox-val">'+fmt(total)+'</div></div>';
-    h+='<div class="sbox '+(m2List.length>0?'sbox-red':'sbox-green')+'">';
-    h+='<div class="sbox-label">Mahnstufe 2</div>';
-    h+='<div class="sbox-val">'+m2List.length+'</div></div>';
-    h+='<div class="sbox '+(storOffen.length>0?'sbox-orange':'sbox-green')+'">';
-    h+='<div class="sbox-label">Stornos offen</div>';
-    h+='<div class="sbox-val">'+storOffen.length+'</div></div>';
-    h+='<div class="sbox '+(azDone<AZ.length?'sbox-orange':'sbox-green')+'">';
-    h+='<div class="sbox-label">Checkliste</div>';
-    h+='<div class="sbox-val">'+(azDone+vorbDone)+' / '+(AZ.length+VORB.length)+'</div></div>';
-    h+='</div>';
-
-    // ── KASSENGESPRÄCHE: OFFEN zuerst ──
-    if(openG.length>0){
-      h+='<div class="sec sec-red">&#9888; Kassengespräche — Noch offen ('+openG.length+')</div>';
-      openG.forEach(function(g,gi){
-        var gid='g'+gi+g.konto;
-        var note=onotes[gid]||'';
-        var sr=g.posten.reduce(function(s,x){return s+x.rest},0);
-        var hasM2=g.posten.some(function(x){return x.mahn==='2'});
-        var hasM1=g.posten.some(function(x){return x.mahn==='1'});
-        var hasR=g.posten.some(function(x){return x.flagR});
-        var hasDub=g.posten.some(function(x){return x.isDubiose});
-        var isUrgent=hasM2||hasDub;
-        h+='<div class="kblock '+(isUrgent?'kblock-urgent':'kblock-open')+'">';
-        h+='<div class="khead '+(isUrgent?'khead-urgent':'khead-open')+'">';
-        h+='<span class="kname">'+g.kasse+'</span>';
-        if(hasDub)h+='<span class="tag tag-dub">Dubiose</span>';
-        if(hasM2)h+='<span class="tag tag-m2">M2 &mdash; Sofort!</span>';
-        else if(hasM1)h+='<span class="tag tag-m1">M1</span>';
-        if(hasR)h+='<span class="tag tag-r">R</span>';
-        h+='<span class="tag tag-offen">Offen</span>';
-        h+='<span class="kamt">'+fmt(sr)+'</span>';
-        h+='</div>';
-        h+='<div class="kbody">';
-        h+='<table><thead><tr><th>Patient</th><th>Zeitraum</th><th class="tr">Restbetrag</th><th>M</th><th>Zahlungsziel</th><th>Rechnungsnr.</th></tr></thead><tbody>';
-        g.posten.forEach(function(p){
-          var rowStyle=p.mahn==='2'?'background:#fdf0f0':p.flagR?'background:#fffbf0':'';
-          h+='<tr style="'+rowStyle+'">';
-          h+='<td><strong>'+p.patient+'</strong></td>';
-          h+='<td style="color:#6b6860">'+p.zeitraum+'</td>';
-          h+='<td class="tr" style="font-weight:bold;color:'+(p.mahn==='2'?'#a32d2d':p.rest>500?'#854f0b':'#0f6e56')+'">'+fmt(p.rest)+'</td>';
-          h+='<td>'+(p.mahn==='0'?'&mdash;':'<span style="font-weight:bold;color:'+(p.mahn==='2'?'#a32d2d':'#854f0b')+'">'+p.mahn+'</span>')+(p.flagR?' <span style="color:#854f0b">R</span>':'')+(p.flagX?' <span style="color:#0c447c">X</span>':'')+'</td>';
-          h+='<td style="color:#6b6860">'+p.zahlZiel+'</td>';
-          h+='<td style="color:#9e9b93;font-size:9px">'+p.rechnNr+'</td>';
-          h+='</tr>';
-        });
-        h+='</tbody></table>';
-        if(note)h+='<div class="notiz"><strong>Notiz:</strong> '+note.replace(/\n/g,'<br>')+'</div>';
-        h+='</div></div>';
+    // OPOS
+    html+='<h2>Kassengespräche</h2>';
+    allG.forEach(function(g,gi){
+      var gid='g'+gi+g.konto;
+      var isDone=!!odone['d_'+g.konto];
+      var note=onotes[gid]||'';
+      var sr=g.posten.reduce(function(s,x){return s+x.rest},0);
+      var adr=adrbuch[adrKey(g.kasse,g.konto)]||{};
+      var maxM=g.posten.some(function(x){return x.mahn==='2'})?'2':g.posten.some(function(x){return x.mahn==='1'})?'1':'0';
+      var prioLabel=g.isPriv?'Privat':maxM==='2'?'Sofort':maxM==='1'?'Hoch':'Normal';
+      html+='<h3>'+g.kasse+' <span style="font-weight:normal;font-size:10px;color:#6b6860">Kto. '+g.konto+' &nbsp;|&nbsp; Priorität: '+prioLabel+'</span>&nbsp;';
+      html+='<span style="font-weight:normal;color:'+(isDone?'#0f6e56':'#854f0b')+'">'+(isDone?'&#10003; Erledigt':'Offen')+'</span></h3>';
+      if(adr.tel||adr.ansp){
+        html+='<div style="font-size:10px;color:#0f6e56;background:#e1f5ee;border-radius:4px;padding:4px 8px;margin-bottom:6px;display:inline-block">';
+        if(adr.tel)html+='\u260e '+adr.tel+'&nbsp;&nbsp;';
+        if(adr.ansp)html+=adr.ansp+'&nbsp;&nbsp;';
+        if(adr.fax)html+='Fax: '+adr.fax+'&nbsp;&nbsp;';
+        if(adr.email)html+=adr.email;
+        html+='</div><br>';
+      }
+      html+='<table><thead><tr><th>Patient</th><th>Vers.-Nr.</th><th>Zeitraum</th><th>Restbetrag</th><th>M</th><th>Zahlungsziel</th></tr></thead><tbody>';
+      g.posten.forEach(function(p){
+        html+='<tr><td>'+p.patient+'</td><td>'+p.versNr+'</td><td>'+p.zeitraum+'</td><td style="font-variant-numeric:tabular-nums;color:'+(p.rest>500?'#a32d2d':'#0f6e56')+'">'+fmt(p.rest)+'</td><td>'+p.mahn+'</td><td>'+p.zahlZiel+'</td></tr>';
       });
-    }
+      html+='</tbody></table>';
+      if(note)html+='<div class="notiz"><strong>Gesprächsnotiz:</strong> '+note.replace(/\n/g,'<br>')+'</div>';
+    });
 
-    // ── KASSENGESPRÄCHE: ERLEDIGT ──
-    if(doneG.length>0){
-      h+='<div class="sec sec-green">&#10003; Kassengespräche — Erledigt ('+doneG.length+')</div>';
-      doneG.forEach(function(g,gi){
-        var gid='g'+(gi+openG.length)+g.konto;
-        var note=onotes[gid]||'';
-        var sr=g.posten.reduce(function(s,x){return s+x.rest},0);
-        h+='<div class="kblock kblock-done">';
-        h+='<div class="khead khead-done">';
-        h+='<span class="kname">'+g.kasse+'</span>';
-        h+='<span class="tag tag-erledigt">&#10003; Erledigt</span>';
-        h+='<span class="kamt" style="color:#0f6e56">'+fmt(sr)+'</span>';
-        h+='</div>';
-        if(note){
-          h+='<div class="kbody"><div class="notiz"><strong>Notiz:</strong> '+note.replace(/\n/g,'<br>')+'</div></div>';
-        }
-        h+='</div>';
+    // Stornos
+    if(stor.length){
+      html+='<h2>Stornierungen</h2>';
+      html+='<table><thead><tr><th>Patient</th><th>Vers.-Nr.</th><th>Betrag</th><th>Datum</th><th>Status</th></tr></thead><tbody>';
+      stor.forEach(function(s){
+        html+='<tr><td>'+s.patient+'</td><td>'+s.versNr+'</td><td>'+fmt(s.betrag)+'</td><td>'+s.datum+'</td><td>'+(SLBL[sstat[s.id]||'check']||'Prüfen')+'</td></tr>';
       });
+      html+='</tbody></table>';
     }
 
-    // ── STORNOS OFFEN ──
-    var storNochOffen=stor.filter(function(s){return s.gutschrift==='nein'});
-    if(storNochOffen.length>0){
-      h+='<div class="sec sec-red">Stornierungen — Offen ('+storNochOffen.length+')</div>';
-      h+='<table><thead><tr><th>Patient</th><th>Kasse</th><th>Art</th><th class="tr">Betrag</th><th class="tr">Rückbel.</th><th>Stornogrund</th><th>Status</th></tr></thead><tbody>';
-      storNochOffen.forEach(function(s){
-        var stat=SLBL2[sstat[s.id]||'check']||'Prüfen';
-        h+='<tr class="stor-row-open">';
-        h+='<td><strong>'+s.patient+'</strong><br><span style="color:#9e9b93;font-size:9px">'+s.leistungsmonat+'</span></td>';
-        h+='<td>'+s.kasse+'</td>';
-        h+='<td><span style="font-size:9px;font-weight:bold;color:'+(s.art>=7?'#a32d2d':s.art>=5?'#854f0b':'#6b6860')+'">'+(s.art>0?'Art '+s.art:'—')+'</span></td>';
-        h+='<td class="tr" style="font-weight:bold">'+fmt(s.betrag)+'</td>';
-        h+='<td class="tr" style="color:'+(s.rueckbelastung>0?'#a32d2d':'#9e9b93')+'">'+(s.rueckbelastung>0?fmt(s.rueckbelastung):'—')+'</td>';
-        h+='<td style="color:#6b6860">'+s.grund+'</td>';
-        h+='<td><span style="font-weight:bold">'+stat+'</span></td>';
-        h+='</tr>';
-      });
-      h+='</tbody></table>';
-    }
-
-    // ── CHECKLISTE ──
-    h+='<div class="sec">Checkliste</div>';
-    h+='<table><thead><tr><th>Aufgabe</th><th>Bereich</th><th>Status</th></tr></thead><tbody>';
-    AZ.forEach(function(lbl,i){
+    // Checklisten
+    html+='<h2>Checklisten</h2>';
+    html+='<table><thead><tr><th>Bereich</th><th>Aufgabe</th><th>Status</th></tr></thead><tbody>';
+    AZ_LBL.forEach(function(lbl,i){
       var ck=!!azck['az'+i];
-      h+='<tr><td>'+lbl+'</td><td style="color:#9e9b93">Auszahlungsbelege</td>';
-      h+='<td class="'+(ck?'ck':'un')+'">'+(ck?'&#10003; Erledigt':'&#9711; Offen')+'</td></tr>';
+      html+='<tr><td>Auszahlungsbelege</td><td>'+lbl+'</td><td class="'+(ck?'ck':'unk')+'">'+(ck?'&#10003; Erledigt':'Offen')+'</td></tr>';
     });
     VORB.forEach(function(v){
       var ck=!!vck[v.id];
-      h+='<tr><td>'+v.ti+'</td><td style="color:#9e9b93">Vorbereitung</td>';
-      h+='<td class="'+(ck?'ck':'un')+'">'+(ck?'&#10003; Erledigt':'&#9711; Offen')+'</td></tr>';
+      html+='<tr><td>Vorbereitung</td><td>'+v.ti+'</td><td class="'+(ck?'ck':'unk')+'">'+(ck?'&#10003; Erledigt':'Offen')+'</td></tr>';
     });
-    h+='</tbody></table>';
+    html+='</tbody></table>';
 
-    h+='<div style="margin-top:24px;padding-top:10px;border-top:1px solid #e2ddd4;color:#9e9b93;font-size:9px;display:flex;justify-content:space-between">';
-    h+='<span>HOMECARE &mdash; AS-Kassen-Assistent</span>';
-    h+='<span>'+kwStr+' &nbsp;|&nbsp; '+dateStr+'</span></div>';
-    h+='</body></html>';
+    // Fax-Tracker
+    if(faxEintraege.length){
+      html+='<h2>Fax-Tracker \u2014 Anträge & Bewilligungsstatus</h2>';
+      html+='<table><thead><tr><th>Patient</th><th>Vers.-Nr.</th><th>Kasse</th><th>Dokumenttyp</th><th>Faxdatum</th><th>Status</th></tr></thead><tbody>';
+      var sortedFax=faxEintraege.slice().sort(function(a,b){return b.datum.localeCompare(a.datum)});
+      sortedFax.forEach(function(e){
+        var statColor=e.status==='bewilligt'?'#0f6e56':e.status==='abgelehnt'?'#a32d2d':'#854f0b';
+        var statLbl=e.status==='bewilligt'?'Bewilligt \u2713':e.status==='abgelehnt'?'Abgelehnt':'Ausstehend';
+        html+='<tr><td style="font-weight:bold">'+e.patient+'</td><td style="color:#6b6860">'+e.versNr+'</td><td>'+e.kasse+'</td><td>'+e.typ+'</td><td>'+fmtDate(e.datum)+'</td><td style="font-weight:bold;color:'+statColor+'">'+statLbl+'</td></tr>';
+      });
+      html+='</tbody></table>';
+    }
 
-    // Download as HTML file (open in browser → Strg+P → Als PDF speichern)
-    var blob=new Blob([h],{type:'text/html;charset=utf-8'});
-    var url=URL.createObjectURL(blob);
-    var kwLabel='KW'+kw(now)+'-'+now.getFullYear();
-    var fname='AS-Kassen-'+(isAbschluss?'Abschluss':'Stand')+'-'+kwLabel+'.html';
-    var a=document.createElement('a');
-    a.href=url;a.download=fname;
-    document.body.appendChild(a);a.click();document.body.removeChild(a);
-    // Also open for printing
-    var w=window.open(url,'_blank');
-    if(w)w.onload=function(){setTimeout(function(){w.print();},600);};
-    setTimeout(function(){URL.revokeObjectURL(url);},60000);
+    html+='</body></html>';
+
+    var w=window.open('','_blank');
+    if(!w){alert('Bitte Pop-ups für diese Seite erlauben, um das PDF zu öffnen.');return;}
+    w.document.write(html);
+    w.document.close();w.focus();
+    setTimeout(function(){w.print()},700);
   }
 
   // ── AUTO SUMMARY PDF ─────────────────────────────────────
   function generateSummaryPdf(){
-    if(!allOpos().length)return;
+    if(!opos.length)return;
     var now=new Date();
     var dateStr=now.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});
     var kwStr='KW '+kw(now)+' / '+now.getFullYear();
-    var allG=groupKasse(allOpos());
+    var allG=groupKasse(opos);
     var total=opos.reduce(function(s,x){return s+x.rest},0);
     var m2list=opos.filter(function(x){return x.mahn==='2'});
     var m1list=opos.filter(function(x){return x.mahn==='1'});
@@ -1859,11 +1442,10 @@ input[type=file]{display:none}
 
     // Wire up buttons
     el('btn-summary-pdf').onclick=function(){
-      var blob=new Blob([buildSummaryHtml()],{type:'text/html;charset=utf-8'});
-      var url=URL.createObjectURL(blob);
-      var w=window.open(url,'_blank');
-      if(w)w.onload=function(){setTimeout(function(){w.print();},500);};
-      setTimeout(function(){URL.revokeObjectURL(url);},30000);
+      var w=window.open('','_blank');
+      w.document.write(buildSummaryHtml());
+      w.document.close();w.focus();
+      setTimeout(function(){w.print()},700);
     };
     el('btn-summary-reload').onclick=function(){generateSummaryPdf()};
   }
@@ -1878,15 +1460,231 @@ input[type=file]{display:none}
     {kasse:'Pflegekasse / SVA',konto:'1740'},
   ];
 
+  function adrKey(kasse,konto){return kasse+'|'+konto}
+
+  function renderAdressbuch(){
+    // Merge known kassen with any from current opos
+    var allKassen=BEKANNTE_KASSEN.slice();
+    groupKasse(opos).forEach(function(g){
+      if(g.isPriv)return;
+      var exists=allKassen.some(function(k){return k.konto===g.konto});
+      if(!exists)allKassen.push({kasse:g.kasse,konto:g.konto});
+    });
+
+    var html=allKassen.map(function(k){
+      var key=adrKey(k.kasse,k.konto);
+      var a=adrbuch[key]||{tel:'',ansp:'',fax:'',email:''};
+      return'<div class="uc" style="margin-bottom:10px">'+
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'+
+          '<div style="font-size:13px;font-weight:500;flex:1">'+k.kasse+'</div>'+
+          '<span style="font-size:11px;color:var(--t3)">Kto. '+k.konto+'</span>'+
+        '</div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+
+          '<div><div style="font-size:11px;color:var(--t3);margin-bottom:3px">Telefon Abrechnung</div>'+
+            '<input type="text" class="adr-inp" data-key="'+key+'" data-field="tel" value="'+( a.tel||'')+'" placeholder="z.B. 089 123456-0" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:var(--rs);font-size:12px;background:var(--sur);color:var(--tx);outline:none"></div>'+
+          '<div><div style="font-size:11px;color:var(--t3);margin-bottom:3px">Ansprechpartner</div>'+
+            '<input type="text" class="adr-inp" data-key="'+key+'" data-field="ansp" value="'+(a.ansp||'')+'" placeholder="Name, Abt." style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:var(--rs);font-size:12px;background:var(--sur);color:var(--tx);outline:none"></div>'+
+          '<div><div style="font-size:11px;color:var(--t3);margin-bottom:3px">Fax</div>'+
+            '<input type="text" class="adr-inp" data-key="'+key+'" data-field="fax" value="'+(a.fax||'')+'" placeholder="Fax-Nummer" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:var(--rs);font-size:12px;background:var(--sur);color:var(--tx);outline:none"></div>'+
+          '<div><div style="font-size:11px;color:var(--t3);margin-bottom:3px">E-Mail</div>'+
+            '<input type="text" class="adr-inp" data-key="'+key+'" data-field="email" value="'+(a.email||'')+'" placeholder="abrechnung@kasse.de" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:var(--rs);font-size:12px;background:var(--sur);color:var(--tx);outline:none"></div>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+    el('adr-list').innerHTML=html;
+  }
+
+  function saveAdressbuch(){
+    document.querySelectorAll('.adr-inp').forEach(function(inp){
+      var key=inp.getAttribute('data-key');
+      var field=inp.getAttribute('data-field');
+      if(!adrbuch[key])adrbuch[key]={tel:'',ansp:'',fax:'',email:''};
+      adrbuch[key][field]=inp.value.trim();
+    });
+    var btn=el('btn-adr-save');
+    btn.textContent='Gespeichert \u2713';
+    btn.style.background='var(--teal)';btn.style.borderColor='var(--teal)';btn.style.color='#fff';
+    setTimeout(function(){btn.textContent='Speichern';btn.style.background='';btn.style.borderColor='';btn.style.color='';},1800);
+  }
+
+  function adrBadge(kasse,konto){
+    var a=adrbuch[adrKey(kasse,konto)];
+    if(!a||(!a.tel&&!a.ansp))return'';
+    var parts=[];
+    if(a.tel)parts.push('\u260e '+a.tel);
+    if(a.ansp)parts.push(a.ansp);
+    return'<div style="font-size:11px;color:var(--teal);background:var(--tbg);border-radius:4px;padding:3px 8px;margin-left:8px;display:inline-block">'+parts.join(' \u00b7 ')+'</div>';
+  }
+
   // ── FAX TRACKER ──────────────────────────────────────────
   var faxFilter='alle';
 
+  function faxId(){return 'f'+Date.now()+Math.random().toString(36).slice(2,6)}
+
+  function renderFaxTracker(){
+    // filter buttons
+    ['alle','offen','bewilligt','abgelehnt'].forEach(function(f){
+      var btn=el('fs-'+f);
+      if(btn){
+        btn.className='fpill'+(faxFilter===f?' active':'');
+        btn.onclick=function(){faxFilter=f;renderFaxTracker()};
+      }
+    });
+
+    var filtered=faxEintraege.filter(function(e){
+      return faxFilter==='alle'||e.status===faxFilter;
+    });
+    filtered.sort(function(a,b){return b.datum.localeCompare(a.datum)});
+
+    var list=el('fax-list');
+    if(!filtered.length){
+      list.innerHTML='<div class="emp"><strong>Noch keine Einträge</strong>Klicke "+ Neuer Eintrag" um einen Fax-Versand zu erfassen.</div>';
+    } else {
+      list.innerHTML=filtered.map(function(e){
+        var statCls=e.status==='bewilligt'?'ft-b':e.status==='abgelehnt'?'ft-a':'ft-o';
+        var statLbl=e.status==='bewilligt'?'Bewilligt':e.status==='abgelehnt'?'Abgelehnt':'Ausstehend';
+        return'<div class="fax-item '+e.status+'">'+
+          '<div>'+
+            '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'+
+              '<span style="font-size:13px;font-weight:500">'+e.patient+'</span>'+
+              '<span style="font-size:11px;color:var(--t3)">'+e.versNr+'</span>'+
+              '<span class="fax-tag '+statCls+'">'+statLbl+'</span>'+
+            '</div>'+
+            '<div style="font-size:12px;color:var(--t2);margin-bottom:3px">'+e.typ+' &nbsp;&middot;&nbsp; '+e.kasse+'</div>'+
+            '<div style="font-size:11px;color:var(--t3)">Gefaxt am: <strong style="color:var(--tx)">'+fmtDate(e.datum)+'</strong>'+(e.notiz?' &nbsp;&middot;&nbsp; '+e.notiz:'')+'</div>'+
+          '</div>'+
+          '<div style="display:flex;gap:6px;align-items:center">'+
+            (e.status!=='bewilligt'?'<button class="db" onclick="setFaxStatus(\''+e.id+'\',\'bewilligt\')">Bewilligt</button>':'')+
+            (e.status!=='abgelehnt'?'<button class="db" style="color:var(--red);border-color:var(--rbd)" onclick="setFaxStatus(\''+e.id+'\',\'abgelehnt\')">Abgelehnt</button>':'')+
+            (e.status!=='offen'?'<button class="db" onclick="setFaxStatus(\''+e.id+'\',\'offen\')">Zurücksetzen</button>':'')+
+            '<button class="db" style="color:var(--red)" onclick="delFax(\''+e.id+'\')">&#10005;</button>'+
+          '</div>'+
+        '</div>';
+      }).join('');
+    }
+
+    // New entry form button
+    el('btn-fax-neu').onclick=function(){showFaxForm()};
+  }
+
+  function fmtDate(iso){
+    if(!iso)return'';
+    var p=iso.split('-');
+    return p[2]+'.'+p[1]+'.'+p[0];
+  }
+
+  function showFaxForm(prefillKasse,prefillPatient,prefillVersNr){
+    var allG=groupKasse(opos);
+    var kasseOptions=allG.map(function(g){
+      return'<option value="'+g.kasse+'|'+g.konto+'">'+g.kasse+' (Kto. '+g.konto+')</option>';
+    }).join('');
+    // Collect all patients
+    var patOptions=Array.from(new Set(opos.map(function(p){return p.patient+'|'+p.versNr}))).map(function(s){
+      var parts=s.split('|');
+      return'<option value="'+s+'">'+parts[0]+'</option>';
+    }).join('');
+
+    var today=new Date().toISOString().slice(0,10);
+    var f=el('fax-neu-form');
+    f.style.display='block';
+    f.innerHTML=
+      '<div style="font-size:13px;font-weight:500;margin-bottom:12px">Neuer Fax-Eintrag</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">'+
+        '<div><div style="font-size:11px;color:var(--t3);margin-bottom:3px">Patient</div>'+
+          '<input id="fneu-pat" type="text" value="'+(prefillPatient||'')+'" placeholder="Name des Patienten" list="fneu-patlist" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:var(--rs);font-size:12px;background:var(--sur);color:var(--tx);outline:none">'+
+          '<datalist id="fneu-patlist">'+patOptions+'</datalist></div>'+
+        '<div><div style="font-size:11px;color:var(--t3);margin-bottom:3px">Vers.-Nr.</div>'+
+          '<input id="fneu-vers" type="text" value="'+(prefillVersNr||'')+'" placeholder="Versichertennummer" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:var(--rs);font-size:12px;background:var(--sur);color:var(--tx);outline:none"></div>'+
+        '<div><div style="font-size:11px;color:var(--t3);margin-bottom:3px">Kasse</div>'+
+          '<select id="fneu-kasse" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:var(--rs);font-size:12px;background:var(--sur);color:var(--tx);outline:none">'+
+          '<option value="">-- Kasse wählen --</option>'+kasseOptions+'</select></div>'+
+        '<div><div style="font-size:11px;color:var(--t3);margin-bottom:3px">Dokumenttyp</div>'+
+          '<select id="fneu-typ" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:var(--rs);font-size:12px;background:var(--sur);color:var(--tx);outline:none">'+
+          FAX_TYPEN.map(function(t){return'<option>'+t+'</option>'}).join('')+'</select></div>'+
+        '<div><div style="font-size:11px;color:var(--t3);margin-bottom:3px">Faxdatum</div>'+
+          '<input id="fneu-dat" type="date" value="'+today+'" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:var(--rs);font-size:12px;background:var(--sur);color:var(--tx);outline:none"></div>'+
+        '<div><div style="font-size:11px;color:var(--t3);margin-bottom:3px">Notiz (optional)</div>'+
+          '<input id="fneu-notiz" type="text" placeholder="z.B. inkl. Fax-Nachweis" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:var(--rs);font-size:12px;background:var(--sur);color:var(--tx);outline:none"></div>'+
+      '</div>'+
+      '<div style="display:flex;gap:8px">'+
+        '<button class="bn" onclick="saveFaxNeu()">Eintrag speichern</button>'+
+        '<button class="bs" onclick="el(\'fax-neu-form\').style.display=\'none\'">Abbrechen</button>'+
+      '</div>';
+    // prefill kasse
+    if(prefillKasse){
+      var sel=el('fneu-kasse');
+      for(var i=0;i<sel.options.length;i++){
+        if(sel.options[i].value.indexOf(prefillKasse)===0){sel.selectedIndex=i;break}
+      }
+    }
+    // auto-fill versNr from patient datalist selection
+    el('fneu-pat').addEventListener('change',function(){
+      var val=this.value;
+      var match=opos.find(function(p){return p.patient===val});
+      if(match)el('fneu-vers').value=match.versNr;
+    });
+    f.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
+
+  function saveFaxNeu(){
+    var pat=el('fneu-pat').value.trim();
+    var vers=el('fneu-vers').value.trim();
+    var kasseVal=el('fneu-kasse').value;
+    var typ=el('fneu-typ').value;
+    var dat=el('fneu-dat').value;
+    if(!pat||!kasseVal||!dat){
+      alert('Patient, Kasse und Datum sind Pflichtfelder.');return;
+    }
+    var kasseParts=kasseVal.split('|');
+    faxEintraege.push({
+      id:faxId(),patient:pat,versNr:vers,
+      kasse:kasseParts[0],konto:kasseParts[1]||'',
+      typ:typ,datum:dat,
+      status:'offen',
+      notiz:el('fneu-notiz').value.trim()
+    });
+    el('fax-neu-form').style.display='none';
+    renderFaxTracker();
+  }
+
+  function setFaxStatus(id,status){
+    var e=faxEintraege.find(function(x){return x.id===id});
+    if(e){e.status=status;renderFaxTracker();}
+  }
+
+  function delFax(id){
+    faxEintraege=faxEintraege.filter(function(x){return x.id!==id});
+    renderFaxTracker();
+  }
+
   // Returns HTML block of pending faxes for a given kasse — shown in anruf banner
+  function faxBlockForKasse(kasse,konto){
+    var relevant=faxEintraege.filter(function(e){
+      return e.kasse===kasse&&(e.konto===konto||!e.konto);
+    });
+    if(!relevant.length)return'';
+    var html='<div class="fax-block">'+
+      '<div class="fax-block-title">Offene Anträge / Fax-Nachverfolgung</div>';
+    relevant.forEach(function(e){
+      var dotCls=e.status==='bewilligt'?'fsd-b':e.status==='abgelehnt'?'fsd-a':'fsd-o';
+      var statLbl=e.status==='bewilligt'?'Bewilligt':e.status==='abgelehnt'?'Abgelehnt':'Ausstehend \u2014 nachfragen!';
+      html+='<div class="fax-row">'+
+        '<div class="fax-status-dot '+dotCls+'"></div>'+
+        '<span style="font-weight:500;flex:1">'+e.patient+'</span>'+
+        '<span style="color:var(--t2)">'+e.typ+'</span>'+
+        '<span style="color:var(--t3);margin-left:8px">Fax '+fmtDate(e.datum)+'</span>'+
+        '<span style="margin-left:8px;font-size:11px;color:'+(e.status==='offen'?'var(--amb)':e.status==='bewilligt'?'var(--teal)':'var(--red)')+'">'+statLbl+'</span>'+
+      '</div>';
+    });
+    html+='</div>';
+    return html;
+  }
 
   function resetWoche(){
-    opos=[];oposd=[];stor=[];azTxt='';vwOpos=[];
+    opos=[];stor=[];azTxt='';
     [onotes,odone,sstat,azck,vck].forEach(function(o){Object.keys(o).forEach(function(k){delete o[k]})});
-    ['oposd','opos','storno','az','vw'].forEach(function(t){
+    // adrbuch und faxEintraege bleiben über Wochen erhalten
+    ['opos','storno','az'].forEach(function(t){
       el('dz-'+t).classList.remove('ok');
       el('dl-'+t).innerHTML='<strong>PDF auswählen</strong><br>oder hierher ziehen';
       el('us-'+t).textContent='';
